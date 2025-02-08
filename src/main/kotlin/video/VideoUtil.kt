@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import nu.pattern.OpenCV
 import org.opencv.core.Mat
 import org.opencv.videoio.VideoCapture
+import org.opencv.videoio.Videoio
 import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.image.BufferedImage
@@ -14,9 +15,11 @@ import javax.swing.JFrame
 import javax.swing.JPanel
 
 
-class VideoUtil {
+class VideoUtil(val path: String) {
 
-    lateinit var image:BufferedImage
+    private var capture: VideoCapture
+    var _image = MutableStateFlow(BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB))
+    val image : StateFlow<BufferedImage> = _image
 
     var _status = MutableStateFlow(VideoUtil.Status.NOT_READY)
     val status : StateFlow<Status> = _status
@@ -30,15 +33,13 @@ class VideoUtil {
     init {
         // Load the OpenCV library
         OpenCV.loadLocally()
-    }
 
-    suspend fun load(path:String) {
         _status.value = Status.LOADING
         // Specify the path to your video file
         val videoPath = path;
 
         // Create a VideoCapture object to open the video file
-        val capture = VideoCapture(videoPath);
+        this.capture = VideoCapture(videoPath);
 
         // Check if the video file was opened successfully
         if (!capture.isOpened()) {
@@ -52,13 +53,12 @@ class VideoUtil {
             // Loop through the video frames
             var frameCount = 0;
             capture.read(frame);
-            this.image = matToBufferedImage(frame)
+            _image.value = matToBufferedImage(frame)
+            println("Frame ${frame}")
             // Release the VideoCapture object
-            capture.release();
             _status.value = Status.READY
         }
     }
-
 
     private fun matToBufferedImage(frame: Mat): BufferedImage {
         var type = 0
@@ -76,8 +76,27 @@ class VideoUtil {
         return image
     }
 
-    companion object {
-        val Stub: VideoUtil = VideoUtil()
+    //seeks video to the percent location
+   // ie seek .5 changes the frame to the one in the middle of the
+   // video
+    fun seek(it: Float) {
+        capture.set(org.opencv.videoio.Videoio.CAP_PROP_POS_AVI_RATIO, it.toDouble())
+
+        val framecount = capture.get(Videoio.CAP_PROP_FRAME_COUNT)
+        val fps = capture.get(Videoio.CAP_PROP_FPS)
+        println("Framecount $framecount, fps $fps, frame ${framecount*it.toDouble()}")
+        // Create a Mat object to store the frames
+        val frame = Mat();
+
+        // Loop through the video frames
+        var frameCount = 0;
+        capture.read(frame);
+        println("Seek ${it.toDouble()}, frame (${frame.width()})x(${frame.height()})")
+        _image.value = matToBufferedImage(frame)
+        // Release the VideoCapture object
+
+
     }
+
 
 }

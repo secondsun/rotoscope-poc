@@ -1,27 +1,69 @@
 package dev.secondsun.tools.rotoscope.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import video.VideoUtil
 
 @Composable
+fun VideoControlBar(modifier: Modifier = Modifier, videoUtil: VideoUtil) {
 
-fun VideoControlBar(modifier:Modifier = Modifier, videoUtil: VideoUtil = VideoUtil.Stub) {
+    val fpsPickerState by mutableStateOf(FPSPickerState.rememberFpsPickerState())
+
     Row(modifier = modifier.fillMaxWidth().wrapContentHeight()) {
-        Box(contentAlignment = Alignment.TopCenter) {
-            IconButton(onClick = {TODO()},
-                content = { Icon(imageVector = Icons.Outlined.PlayArrow, contentDescription = "Play") })
+        //Text("FPS:")
+        //FPSPicker(fpsPickerState)
+        FrameScrubber {
+            videoUtil.seek(it)
+        }
+    }
+}
+
+@Composable
+fun FrameScrubber(sliderPosition: MutableFloatState = remember { mutableFloatStateOf(0f) },onValueChange:(Float)->Unit) {
+
+    Slider(
+        value = sliderPosition.value,
+        onValueChange = { sliderPosition.value = it;onValueChange(it) }
+    )
+}
+
+@Composable
+fun FPSPicker(state: FPSPickerState = FPSPickerState.rememberFpsPickerState() , onSelected: (Int) -> Unit = {}) {
+
+    var expanded by state.expanded
+    val items = FPSPickerState.fpsItems
+    var selectedIndex by state.selectedIndex
+
+    Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
+        Text(
+            items[selectedIndex].toString(),
+            modifier = Modifier.fillMaxWidth().clickable(onClick = { expanded = true }).background(
+                MaterialTheme.colors.onPrimary
+            )
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items.forEachIndexed { index, s ->
+                DropdownMenuItem(onClick = {
+                    selectedIndex = index
+                    expanded = false
+                    onSelected(items[index])
+                }) {
+
+                    Text(text = s.toString())
+                }
+
+            }
+
         }
     }
 }
@@ -30,6 +72,35 @@ fun VideoControlBar(modifier:Modifier = Modifier, videoUtil: VideoUtil = VideoUt
 @Preview
 fun previewVideoControlBar() {
     MaterialTheme {
-        VideoControlBar()
+        FPSPicker()
     }
+}
+
+
+class FPSPickerState(val expanded: MutableState<Boolean>, val selectedIndex: MutableIntState) {
+
+    val currentFps: Int
+        get() = fpsItems[selectedIndex.value]
+
+    companion object {
+        // default to 30fps
+        val defaultFpsIndex = 5
+
+        //vailable FPS. Magic numbers pulled from a hat of numbers that divide 60
+        val fpsItems = listOf(5, 10, 12, 15, 20, 30)
+
+        @Composable
+        fun rememberFpsPickerState():FPSPickerState {
+            val expanded: MutableState<Boolean> = remember { mutableStateOf(false) }
+            val selectedIndex: MutableIntState = remember { mutableIntStateOf(defaultFpsIndex) }
+
+            return remember(expanded, selectedIndex) {
+                FPSPickerState(expanded, selectedIndex)
+            }
+
+        }
+
+    }
+
+
 }
