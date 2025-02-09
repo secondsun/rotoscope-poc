@@ -1,4 +1,4 @@
-package dev.secondsun.tools.rotoscope.ui
+package dev.secondsun.tools.rotoscope.ui.video
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
@@ -8,7 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import video.VideoUtil
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun VideoControlBar(modifier: Modifier = Modifier, videoUtil: VideoUtil) {
@@ -27,14 +27,32 @@ fun VideoControlBar(modifier: Modifier = Modifier, videoUtil: VideoUtil) {
 @Composable
 fun FrameScrubber(sliderPosition: MutableFloatState = remember { mutableFloatStateOf(0f) },onValueChange:(Float)->Unit) {
 
+    val colors :SliderColors = object : SliderColors {
+        @Composable
+        override fun thumbColor(enabled: Boolean): State<Color> {
+            return mutableStateOf(MaterialTheme.colors.onPrimary)
+        }
+
+        @Composable
+        override fun tickColor(enabled: Boolean, active: Boolean): State<Color> {
+            return mutableStateOf(MaterialTheme.colors.onPrimary)
+        }
+
+        @Composable
+        override fun trackColor(enabled: Boolean, active: Boolean): State<Color> {
+            return mutableStateOf(MaterialTheme.colors.onPrimary)
+        }
+
+    }
     Slider(
         value = sliderPosition.value,
+        colors =  colors,
         onValueChange = { sliderPosition.value = it;onValueChange(it) }
     )
 }
 
 @Composable
-fun FPSPicker(state: FPSPickerState = FPSPickerState.rememberFpsPickerState() , onSelected: (Int) -> Unit = {}) {
+fun FPSPicker(state: FPSPickerState = FPSPickerState.rememberFpsPickerState(), onSelected: (Int) -> Unit = {}) {
 
     var expanded by state.expanded
     val items = FPSPickerState.fpsItems
@@ -90,7 +108,7 @@ class FPSPickerState(val expanded: MutableState<Boolean>, val selectedIndex: Mut
         val fpsItems = listOf(5, 10, 12, 15, 20, 30)
 
         @Composable
-        fun rememberFpsPickerState():FPSPickerState {
+        fun rememberFpsPickerState(): FPSPickerState {
             val expanded: MutableState<Boolean> = remember { mutableStateOf(false) }
             val selectedIndex: MutableIntState = remember { mutableIntStateOf(defaultFpsIndex) }
 

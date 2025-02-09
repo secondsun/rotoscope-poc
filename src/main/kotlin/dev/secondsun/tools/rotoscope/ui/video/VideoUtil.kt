@@ -1,4 +1,4 @@
-package video
+package dev.secondsun.tools.rotoscope.ui.video
 
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +21,7 @@ class VideoUtil(val path: String) {
     var _image = MutableStateFlow(BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB))
     val image : StateFlow<BufferedImage> = _image
 
-    var _status = MutableStateFlow(VideoUtil.Status.NOT_READY)
+    var _status = MutableStateFlow(Status.NOT_READY)
     val status : StateFlow<Status> = _status
 
     enum class Status {
@@ -80,7 +80,7 @@ class VideoUtil(val path: String) {
    // ie seek .5 changes the frame to the one in the middle of the
    // video
     fun seek(it: Float) {
-        capture.set(org.opencv.videoio.Videoio.CAP_PROP_POS_AVI_RATIO, it.toDouble())
+        capture.set(org.opencv.videoio.Videoio.CAP_PROP_POS_MSEC, it.toDouble() * (200f/30f) *1000)
 
         val framecount = capture.get(Videoio.CAP_PROP_FRAME_COUNT)
         val fps = capture.get(Videoio.CAP_PROP_FPS)

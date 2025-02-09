@@ -1,9 +1,7 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -11,18 +9,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import dev.secondsun.tools.rotoscope.ui.FPSPicker
-import dev.secondsun.tools.rotoscope.ui.FrameScrubber
-import dev.secondsun.tools.rotoscope.ui.VideoControlBar
-import dev.secondsun.tools.rotoscope.ui.VideoFrame
+import dev.secondsun.tools.rotoscope.ui.drawing.DrawingToolbar
+import dev.secondsun.tools.rotoscope.ui.video.FrameScrubber
+import dev.secondsun.tools.rotoscope.ui.video.VideoFrame
 import kotlinx.coroutines.*
-import video.VideoUtil
+import dev.secondsun.tools.rotoscope.ui.video.VideoUtil
 
 private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -43,7 +36,6 @@ fun App() {
                             }
                         })
                         { Text("Load") }
-                        FrameScrubber {  }
                     }
                 }
                 VideoUtil.Status.LOADING -> {
@@ -52,7 +44,11 @@ fun App() {
                     }
                 }
                 VideoUtil.Status.READY -> {
-                    VideoFrame(videoUtil = util)
+                    Row {
+                        DrawingToolbar(modifier = Modifier.fillMaxHeight().wrapContentWidth().background(MaterialTheme.colors.primary))
+                        VideoFrame(modifier = Modifier.fillMaxSize().weight(1f),videoUtil = util)
+                    }
+
                 }
             }
 
