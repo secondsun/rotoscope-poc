@@ -29,7 +29,8 @@ dependencies {
     implementation(compose.desktop.common)
     implementation(compose.components.resources)
 
-    implementation("org.openpnp:opencv:4.9.0-0")
+    implementation("org.bytedeco:opencv-platform:4.10.0-1.5.11")
+    implementation(libs.reorderable)
 }
 
 

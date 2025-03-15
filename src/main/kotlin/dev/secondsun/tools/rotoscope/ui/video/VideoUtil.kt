@@ -3,7 +3,8 @@ package dev.secondsun.tools.rotoscope.ui.video
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import nu.pattern.OpenCV
+import org.bytedeco.javacpp.Loader
+import org.bytedeco.opencv.opencv_java
 import org.opencv.core.Mat
 import org.opencv.videoio.VideoCapture
 import org.opencv.videoio.Videoio
@@ -32,27 +33,27 @@ class VideoUtil(val path: String) {
 
     init {
         // Load the OpenCV library
-        OpenCV.loadLocally()
+        Loader.load(opencv_java::class.java)
 
         _status.value = Status.LOADING
         // Specify the path to your video file
-        val videoPath = path;
+        val videoPath = path
 
         // Create a VideoCapture object to open the video file
-        this.capture = VideoCapture(videoPath);
+        this.capture = VideoCapture(videoPath)
 
         // Check if the video file was opened successfully
-        if (!capture.isOpened()) {
-            System.out.println("Error opening video file.");
+        if (!capture.isOpened) {
+            System.out.println("Error opening video file.")
             _status.value = Status.NOT_READY
         } else {
 
             // Create a Mat object to store the frames
-            val frame = Mat();
+            val frame = Mat()
 
             // Loop through the video frames
-            var frameCount = 0;
-            capture.read(frame);
+            var frameCount = 0
+            capture.read(frame)
             _image.value = matToBufferedImage(frame)
             println("Frame ${frame}")
             // Release the VideoCapture object
@@ -80,17 +81,17 @@ class VideoUtil(val path: String) {
    // ie seek .5 changes the frame to the one in the middle of the
    // video
     fun seek(it: Float) {
-        capture.set(org.opencv.videoio.Videoio.CAP_PROP_POS_MSEC, it.toDouble() * (200f/30f) *1000)
+        capture.set(Videoio.CAP_PROP_POS_MSEC, it.toDouble() * (200f/30f) *1000)
 
         val framecount = capture.get(Videoio.CAP_PROP_FRAME_COUNT)
         val fps = capture.get(Videoio.CAP_PROP_FPS)
         println("Framecount $framecount, fps $fps, frame ${framecount*it.toDouble()}")
         // Create a Mat object to store the frames
-        val frame = Mat();
+        val frame = Mat()
 
         // Loop through the video frames
-        var frameCount = 0;
-        capture.read(frame);
+        var frameCount = 0
+        capture.read(frame)
         println("Seek ${it.toDouble()}, frame (${frame.width()})x(${frame.height()})")
         _image.value = matToBufferedImage(frame)
         // Release the VideoCapture object

@@ -1,0 +1,84 @@
+package dev.secondsun.tools.rotoscope.ui.drawing
+
+import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.unit.dp
+import dev.secondsun.tools.rotoscope.ui.drawPoly
+import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
+import dev.secondsun.tools.rotoscope.ui.vo.Polygon
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
+
+@Composable
+fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
+
+    val list by model.polygonList
+
+    val lazyListState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        // Update the list
+        list.apply {
+            model.swapPolys(to.index,from.index)
+
+        }
+    }
+
+    Column(modifier
+        .fillMaxHeight()
+        .wrapContentWidth()) {
+
+        LazyColumn(modifier = Modifier.wrapContentSize(),
+            state = lazyListState,
+            contentPadding = PaddingValues(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),) {
+            this.itemsIndexed(
+                items = list.toList(),
+                key = { _:Int, item: Polygon -> item.key }) { index, poly: Polygon ->
+
+                ReorderableItem(
+                    reorderableLazyListState,
+                    key = poly.key,
+                    modifier.padding(12.dp)
+                            .border(width = 2.dp, color = MaterialTheme.colors.onSurface)
+                            .height(64.dp).width(100.dp)) { isDragging ->
+                    // Item content
+                    val interactionSource = remember { MutableInteractionSource() }
+                    Box(Modifier.fillMaxSize().draggableHandle(interactionSource = interactionSource)) {
+                        Canvas(Modifier.background(MaterialTheme.colors.surface).fillMaxSize()) {
+                            val canvasWidth = this.size.width
+                            val canvasHeight = this.size.height
+
+                            //The big nasty thing scales the polygons so they draw inside of the canvas tile
+
+                            drawPoly(Polygon(poly.color,poly.key).apply { points.addAll(poly.normalizePoints.map { PolyPoint(
+                                ((it.x.toFloat()/poly.bounds.width.toFloat())*canvasWidth).toInt(),
+                                (canvasHeight*((it.y.toFloat()/poly.bounds.height.toFloat()))).toInt()
+                            ) }) })
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PolyStackPreview() {
+    MaterialTheme {
+        PolyStackTool(model=RotoscopeAppModel())
+    }
+}
+

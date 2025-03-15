@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import dev.secondsun.tools.rotoscope.ui.drawing.DrawingToolbar
-import dev.secondsun.tools.rotoscope.ui.video.FrameScrubber
+import dev.secondsun.tools.rotoscope.ui.drawing.RotoscopeAppModel
 import dev.secondsun.tools.rotoscope.ui.video.VideoFrame
 import kotlinx.coroutines.*
 import dev.secondsun.tools.rotoscope.ui.video.VideoUtil
@@ -24,7 +24,7 @@ private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 fun App() {
     var util = VideoUtil("C:\\Users\\secon\\OneDrive\\Pictures\\Camera Roll\\WIN_20250205_16_30_05_Pro.mp4")
     val status by util.status.collectAsState()
-
+    val model = RotoscopeAppModel()
 
     MaterialTheme {
             when (status) {
@@ -45,8 +45,8 @@ fun App() {
                 }
                 VideoUtil.Status.READY -> {
                     Row {
-                        DrawingToolbar(modifier = Modifier.fillMaxHeight().wrapContentWidth().background(MaterialTheme.colors.primary))
-                        VideoFrame(modifier = Modifier.fillMaxSize().weight(1f),videoUtil = util)
+                        DrawingToolbar(modifier = Modifier.fillMaxHeight().wrapContentWidth().background(MaterialTheme.colors.primary), model=model)
+                        VideoFrame(modifier = Modifier.fillMaxSize().weight(1f),videoUtil = util, model=model)
                     }
 
                 }

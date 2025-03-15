@@ -1,0 +1,7 @@
+[versions]
+#...
+reorderable = "2.4.3"
+
+[libraries]
+#...
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
