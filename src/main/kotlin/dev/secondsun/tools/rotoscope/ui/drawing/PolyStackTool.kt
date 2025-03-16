@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.dp
 import dev.secondsun.tools.rotoscope.ui.drawPoly
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
@@ -27,16 +31,27 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
 
     val lazyListState = rememberLazyListState()
     val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+
         // Update the list
         list.apply {
             model.swapPolys(to.index,from.index)
-
         }
     }
 
     Column(modifier
         .fillMaxHeight()
         .wrapContentWidth()) {
+
+        PolystackToolbar(addRemoveAction = object: AddRemoveAction {
+            override fun add() {
+                model.addPolygon()
+            }
+
+            override fun remove() {
+                model.removePolygon()
+            }
+
+        })
 
         LazyColumn(modifier = Modifier.wrapContentSize(),
             state = lazyListState,
@@ -72,6 +87,35 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
             }
         }
     }
+}
+
+@Composable
+fun PolystackToolbar(modifier: Modifier = Modifier, addRemoveAction: AddRemoveAction = AddRemoveAction.TODO) {
+    Row(modifier.wrapContentHeight()) {
+        IconButton(onClick = { addRemoveAction.add() }) {
+            Icon(Icons.Default.Add, "Add Polygon")
+        }
+        IconButton(onClick = { addRemoveAction.remove() }) {
+            Icon(Icons.Default.Delete, "Remove Polygon")
+        }
+
+    }
+}
+
+interface AddRemoveAction {
+
+    object TODO : AddRemoveAction {
+        override fun add() {
+            TODO("Not yet implemented")
+        }
+
+        override fun remove() {
+            TODO("Not yet implemented")
+        }
+    }
+
+    fun add()
+    fun remove()
 }
 
 @Preview

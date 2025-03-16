@@ -19,7 +19,7 @@ class RotoscopeAppModel(val dataSource : TempDataSource = TempDataSource()) {
     private var _filePath = mutableStateOf("")
     val filePath : State<String> = _filePath
 
-    val polygonList = mutableStateOf(listOf<Polygon>())
+    val polygonList = mutableStateOf(listOf(Polygon()))
 
     private var polygonStack = dataSource.getPolyStack(frame.value, filePath.value)
 
@@ -29,6 +29,7 @@ class RotoscopeAppModel(val dataSource : TempDataSource = TempDataSource()) {
     }
 
     fun addPointToCurrentPoly(point : PolyPoint) {
+
 
         if (polygonStack.polys.isEmpty()) {
             polygonStack.polys.add(Polygon())
@@ -46,26 +47,40 @@ class RotoscopeAppModel(val dataSource : TempDataSource = TempDataSource()) {
 
     fun frame(frameNumber : Int) {
         _frame.value = frameNumber
+        polyIndex(0)
         polygonStack = dataSource.getPolyStack(frame.value, filePath.value)
         polygonList.value = polygonStack.polys.toList()
     }
 
     fun filePath(path:String) {
         _filePath.value = path
+        polyIndex(0)
         polygonStack = dataSource.getPolyStack(frame.value, filePath.value)
         polygonList.value = polygonStack.polys.toList()
     }
 
 
-    fun addPolygon(frame:Int, polygon: Polygon) {
-        polygonStack.polys.add(polygon)
+    fun addPolygon(index: Int = polyIndex.value, polygon: Polygon = Polygon()) {
+        polygonStack.polys.add(index+1, polygon)
         polygonList.value = polygonStack.polys.toList()
+        polyIndex(index + 1)
+    }
+    fun removePolygon(index: Int = polyIndex.value) {
+        if (!polygonStack.polys.isEmpty()
+            && index >=0 && index <polygonStack.polys.size) {
+            polygonStack.polys.removeAt(index)
+            if (polyIndex.value >= polygonStack.polys.size) {
+                polyIndex(index - 1)
+            }
+            polygonList.value = polygonStack.polys.toList()
+        }
     }
 
     fun swapPolys(to: Int, from: Int) {
         polygonStack.polys.apply {add(to, removeAt(from))}
         polygonList.value = polygonStack.polys.toList()
     }
+
 
 }
 

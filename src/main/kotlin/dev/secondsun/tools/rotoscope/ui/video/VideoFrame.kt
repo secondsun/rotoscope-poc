@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.IntSize
 import dev.secondsun.tools.rotoscope.ui.drawPoly
 import dev.secondsun.tools.rotoscope.ui.drawing.RotoscopeAppModel
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
+import dev.secondsun.tools.rotoscope.ui.vo.Polygon
 
 @Composable
 fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model : RotoscopeAppModel) {
@@ -64,8 +65,11 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model : Roto
                         image = videoUtil.image.value.toComposeImageBitmap(),
                         srcOffset = IntOffset(-offset.x.toInt(), -offset.y.toInt())
                     )
-                    polygons.forEach {
-                        drawPoly(it)
+                    polygons.forEach {poly->
+                        drawPoly(Polygon(poly.color,poly.key).apply { points.addAll(poly.points.map {
+                                PolyPoint(it.x+offset.x.toInt(), it.y+offset.y.toInt())
+                            })
+                        })
                     }
                 }
             }
