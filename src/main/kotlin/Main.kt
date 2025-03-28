@@ -16,14 +16,28 @@ import dev.secondsun.tools.rotoscope.ui.drawing.RotoscopeAppModel
 import dev.secondsun.tools.rotoscope.ui.video.VideoFrame
 import kotlinx.coroutines.*
 import dev.secondsun.tools.rotoscope.ui.video.VideoUtil
+import dev.secondsun.tools.rotoscope.ui.video.VideoUtilBuilder
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PickerType
+import java.io.File
 
 private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 @Composable
 @Preview
 fun App() {
-    var util = VideoUtil("C:\\Users\\secon\\OneDrive\\Pictures\\Camera Roll\\WIN_20250205_16_30_05_Pro.mp4")
+    var util by remember {mutableStateOf(VideoUtil("C:\\Users\\secon\\OneDrive\\Pictures\\Camera Roll\\WIN_20250205_16_30_05_Pro.mp4"))}
     val status by util.status.collectAsState()
+
+    val launcher = rememberFilePickerLauncher(
+        type = PickerType.Video,
+        mode = PickerMode.Single,
+        title = "Pick a media",
+        initialDirectory = "D:\\"
+    ) { file ->
+        util = VideoUtilBuilder.open(file!!)
+    }
     val model = RotoscopeAppModel()
 
     MaterialTheme {
@@ -32,6 +46,7 @@ fun App() {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Button(onClick = {
                             ioScope.launch {
+                                launcher.launch()
 
                             }
                         })

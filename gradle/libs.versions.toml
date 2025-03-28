@@ -1,7 +1,7 @@
 [versions]
-#...
 reorderable = "2.4.3"
+filekitCompose = "0.8.8"
 
 [libraries]
-#...
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCompose" }

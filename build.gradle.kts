@@ -22,15 +22,17 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
-
     implementation(compose.ui)
     implementation(compose.foundation)
     implementation(compose.material)
     implementation(compose.desktop.common)
     implementation(compose.components.resources)
 
-    implementation("org.bytedeco:opencv-platform:4.10.0-1.5.11")
     implementation(libs.reorderable)
+    implementation("org.bytedeco:opencv-platform:4.10.0-1.5.11")
+    implementation(libs.filekit.compose)
+
+    implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
 }
 
 

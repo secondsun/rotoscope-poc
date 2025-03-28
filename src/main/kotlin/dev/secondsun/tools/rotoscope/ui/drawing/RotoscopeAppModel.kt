@@ -33,6 +33,9 @@ class RotoscopeAppModel(val dataSource : TempDataSource = TempDataSource()) {
 
         if (polygonStack.polys.isEmpty()) {
             polygonStack.polys.add(Polygon())
+            if (_polyIndex.value < 0) {
+                _polyIndex.value = 0
+            }
         }
 
         polygonStack.polys[_polyIndex.value].addPoint(point)
