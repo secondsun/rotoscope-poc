@@ -2,55 +2,49 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import dev.secondsun.tools.rotoscope.data.DATA_STORE_FILE_NAME
+import dev.secondsun.tools.rotoscope.data.createDataStore
 import dev.secondsun.tools.rotoscope.ui.drawing.DrawingToolbar
 import dev.secondsun.tools.rotoscope.ui.drawing.RotoscopeAppModel
+import dev.secondsun.tools.rotoscope.ui.startscreen.StartScreen
+import dev.secondsun.tools.rotoscope.ui.startscreen.StartScreenViewModel
 import dev.secondsun.tools.rotoscope.ui.video.VideoFrame
 import kotlinx.coroutines.*
 import dev.secondsun.tools.rotoscope.ui.video.VideoUtil
 import dev.secondsun.tools.rotoscope.ui.video.VideoUtilBuilder
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
-import java.io.File
 
-private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 @Composable
 @Preview
-fun App() {
+fun App(prefs: DataStore<Preferences>) {
+
     var util by remember {mutableStateOf(VideoUtil("C:\\Users\\secon\\OneDrive\\Pictures\\Camera Roll\\WIN_20250205_16_30_05_Pro.mp4"))}
     val status by util.status.collectAsState()
 
-    val launcher = rememberFilePickerLauncher(
-        type = PickerType.Video,
-        mode = PickerMode.Single,
-        title = "Pick a media",
-        initialDirectory = "D:\\"
-    ) { file ->
-        util = VideoUtilBuilder.open(file!!)
-    }
     val model = RotoscopeAppModel()
 
     MaterialTheme {
             when (status) {
                 VideoUtil.Status.NOT_READY -> {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        Button(onClick = {
-                            ioScope.launch {
-                                launcher.launch()
-
+                        StartScreen(
+                            Modifier.fillMaxSize().background(MaterialTheme.colors.primary),
+                            StartScreenViewModel(prefs)
+                        ) { file ->
+                            if (file != null) {
+                                util = VideoUtilBuilder.open(file)
                             }
-                        })
-                        { Text("Load") }
+                        }
+
                     }
                 }
                 VideoUtil.Status.LOADING -> {
@@ -73,8 +67,16 @@ fun App() {
 
 
 
-fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
-        App()
-    }
-}
+fun main(): Unit
+    {
+        val prefs = createDataStore {
+                DATA_STORE_FILE_NAME
+            }
+
+            application {
+
+                Window(onCloseRequest = ::exitApplication) {
+                    App(prefs)
+                }
+            }
+        }

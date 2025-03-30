@@ -1,7 +1,10 @@
 [versions]
 reorderable = "2.4.3"
 filekitCompose = "0.8.8"
+datastore = "1.1.1"
 
 [libraries]
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCompose" }
+datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }

@@ -2,12 +2,23 @@ package dev.secondsun.tools.rotoscope.ui.drawing
 
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
 import dev.secondsun.tools.rotoscope.ui.vo.Polygon
 import dev.secondsun.tools.rotoscope.ui.vo.PolygonStack
 
 class RotoscopeAppModel(val dataSource : TempDataSource = TempDataSource()) {
 
+
+    val palette: IntArray
+        get() {return  IntArray(15).map {
+            Color((Math.random()*255).toInt(),
+                  (Math.random()*255).toInt(),
+                  (Math.random()*255).toInt()).toArgb() }.toIntArray()
+        }
+    private var _tool = mutableStateOf(Tools.PolygonStackTool)
+    val tool : State<Tools> = _tool
 
     private var _frame = mutableIntStateOf(0)
     val frame : IntState = _frame
@@ -26,6 +37,10 @@ class RotoscopeAppModel(val dataSource : TempDataSource = TempDataSource()) {
 
     fun polyIndex(index : Int) {
         _polyIndex.value = index
+    }
+
+    fun setTool(tool:Tools) {
+        _tool.value = tool
     }
 
     fun addPointToCurrentPoly(point : PolyPoint) {

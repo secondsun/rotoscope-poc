@@ -32,6 +32,8 @@ dependencies {
     implementation("org.bytedeco:opencv-platform:4.10.0-1.5.11")
     implementation(libs.filekit.compose)
 
+    api(libs.datastore.preferences)
+    api(libs.datastore)
     implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
 }
 
