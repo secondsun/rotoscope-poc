@@ -14,6 +14,11 @@
 
 package com.jthemedetecor;
 
+import java.awt.Color;
+
+import com.jthemedetecor.consumers.DarkModeConsumer;
+import com.jthemedetecor.consumers.PrimaryColorConsumer;
+import com.jthemedetecor.consumers.ThemingConsumer;
 import com.jthemedetecor.util.ConcurrentHashSet;
 import com.sun.jna.platform.win32.*;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Determines the dark/light theme by the windows registry values through JNA.
@@ -36,10 +40,12 @@ class WindowsThemeDetector extends OsThemeDetector {
 
     private static final Logger logger = LoggerFactory.getLogger(WindowsThemeDetector.class);
 
-    private static final String REGISTRY_PATH = "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
-    private static final String REGISTRY_VALUE = "AppsUseLightTheme";
+    private static final String DARK_MODE_REGISTRY_PATH = "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+    private static final String ACCENT_COLOR_REGISTRY_PATH = "Software\\Microsoft\\Windows\\DWM";
+    private static final String ACCENT_COLOR_REGISTRY_VALUE = "AccentColor";
+    private static final String DARK_MODE_REGISTRY_VALUE = "AppsUseLightTheme";
 
-    private final Set<Consumer<Boolean>> listeners = new ConcurrentHashSet<>();
+    private final Set<ThemingConsumer<?>> listeners = new ConcurrentHashSet<>();
     private volatile DetectorThread detectorThread;
 
     WindowsThemeDetector() {
@@ -47,13 +53,23 @@ class WindowsThemeDetector extends OsThemeDetector {
 
     @Override
     public boolean isDark() {
-        return Advapi32Util.registryValueExists(WinReg.HKEY_CURRENT_USER, REGISTRY_PATH, REGISTRY_VALUE) &&
-                Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, REGISTRY_PATH, REGISTRY_VALUE) == 0;
+        return Advapi32Util.registryValueExists(WinReg.HKEY_CURRENT_USER, DARK_MODE_REGISTRY_PATH, DARK_MODE_REGISTRY_VALUE) &&
+                Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, DARK_MODE_REGISTRY_PATH, DARK_MODE_REGISTRY_VALUE) == 0;
+    }
+
+    @Override
+    public Color getPrimaryColor() {
+        if (Advapi32Util.registryValueExists(WinReg.HKEY_CURRENT_USER, ACCENT_COLOR_REGISTRY_PATH, ACCENT_COLOR_REGISTRY_VALUE)) {
+            var color = Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, ACCENT_COLOR_REGISTRY_PATH, ACCENT_COLOR_REGISTRY_VALUE);
+            return new java.awt.Color(color);
+        } else {
+            return new java.awt.Color(0x673AB7);
+        }
     }
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public synchronized void registerListener(@NotNull Consumer<Boolean> darkThemeListener) {
+    public synchronized void registerListener(@NotNull ThemingConsumer<?>  darkThemeListener) {
         Objects.requireNonNull(darkThemeListener);
         final boolean listenerAdded = listeners.add(darkThemeListener);
         final boolean singleListener = listenerAdded && listeners.size() == 1;
@@ -68,13 +84,14 @@ class WindowsThemeDetector extends OsThemeDetector {
     }
 
     @Override
-    public synchronized void removeListener(@Nullable Consumer<Boolean> darkThemeListener) {
+    public synchronized void removeListener(@Nullable ThemingConsumer<?> darkThemeListener) {
         listeners.remove(darkThemeListener);
         if (listeners.isEmpty()) {
             this.detectorThread.interrupt();
             this.detectorThread = null;
         }
     }
+
 
     /**
      * Thread implementation for detecting the theme changes
@@ -83,11 +100,13 @@ class WindowsThemeDetector extends OsThemeDetector {
 
         private final WindowsThemeDetector themeDetector;
 
-        private boolean lastValue;
+        private boolean lastDarkModeValue;
+        private Color lastColorValue;
 
         DetectorThread(WindowsThemeDetector themeDetector) {
             this.themeDetector = themeDetector;
-            this.lastValue = themeDetector.isDark();
+            this.lastDarkModeValue = themeDetector.isDark();
+            this.lastColorValue = themeDetector.getPrimaryColor();
             this.setName("Windows 10 Theme Detector Thread");
             this.setDaemon(true);
             this.setPriority(Thread.NORM_PRIORITY - 1);
@@ -95,32 +114,72 @@ class WindowsThemeDetector extends OsThemeDetector {
 
         @Override
         public void run() {
-            WinReg.HKEYByReference hkey = new WinReg.HKEYByReference();
-            int err = Advapi32.INSTANCE.RegOpenKeyEx(WinReg.HKEY_CURRENT_USER, REGISTRY_PATH, 0, WinNT.KEY_READ, hkey);
-            if (err != W32Errors.ERROR_SUCCESS) {
-                throw new Win32Exception(err);
+            WinReg.HKEYByReference colorHkey = new WinReg.HKEYByReference();
+
+            WinReg.HKEYByReference darkModeHkey = new WinReg.HKEYByReference();
+
+            int darkModeErr = Advapi32.INSTANCE.RegOpenKeyEx(WinReg.HKEY_CURRENT_USER, DARK_MODE_REGISTRY_PATH, 0, WinNT.KEY_READ, darkModeHkey);
+            int colorErr = Advapi32.INSTANCE.RegOpenKeyEx(WinReg.HKEY_CURRENT_USER, ACCENT_COLOR_REGISTRY_PATH, 0, WinNT.KEY_READ, colorHkey);
+            if (darkModeErr != W32Errors.ERROR_SUCCESS) {
+                throw new Win32Exception(darkModeErr);
+            } else if (colorErr != W32Errors.ERROR_SUCCESS) {
+                throw new Win32Exception(colorErr);
             }
 
             while (!this.isInterrupted()) {
-                err = Advapi32.INSTANCE.RegNotifyChangeKeyValue(hkey.getValue(), false, WinNT.REG_NOTIFY_CHANGE_LAST_SET, null, false);
-                if (err != W32Errors.ERROR_SUCCESS) {
-                    throw new Win32Exception(err);
+                darkModeErr = Advapi32.INSTANCE.RegNotifyChangeKeyValue(darkModeHkey.getValue(), false, WinNT.REG_NOTIFY_CHANGE_LAST_SET, null, false);
+                colorErr = Advapi32.INSTANCE.RegNotifyChangeKeyValue(colorHkey.getValue(), false, WinNT.REG_NOTIFY_CHANGE_LAST_SET, null, false);
+
+                if (darkModeErr != W32Errors.ERROR_SUCCESS) {
+                    throw new Win32Exception(darkModeErr);
+                } else if (colorErr != W32Errors.ERROR_SUCCESS) {
+                    throw new Win32Exception(colorErr);
                 }
 
-                boolean currentDetection = themeDetector.isDark();
-                if (currentDetection != this.lastValue) {
-                    lastValue = currentDetection;
-                    logger.debug("Theme change detected: dark: {}", currentDetection);
-                    for (Consumer<Boolean> listener : themeDetector.listeners) {
+                boolean currentDarkModeDetection = themeDetector.isDark();
+                Color currentColorDetection = themeDetector.getPrimaryColor();
+
+                if (currentDarkModeDetection != this.lastDarkModeValue) {
+                    lastDarkModeValue = currentDarkModeDetection;
+                    logger.debug("Theme change detected: dark: {}", currentDarkModeDetection);
+                    for (ThemingConsumer<?> listener : themeDetector.listeners) {
                         try {
-                            listener.accept(currentDetection);
+                            switch (listener) {
+                                case DarkModeConsumer darkModeConsumer -> {
+                                    darkModeConsumer.accept(currentDarkModeDetection);
+                                }
+                                case PrimaryColorConsumer primaryColorConsumer -> {
+                                }
+                            }
+
                         } catch (RuntimeException e) {
                             logger.error("Caught exception during listener notifying ", e);
                         }
                     }
                 }
+
+                if (currentColorDetection != this.lastColorValue) {
+                    this.lastColorValue = currentColorDetection;
+                    logger.debug("Theme change detected: dark: {}", currentColorDetection);
+                    for (ThemingConsumer<?> listener : themeDetector.listeners) {
+                        try {
+                            switch (listener) {
+                                case DarkModeConsumer darkModeConsumer -> {
+                                }
+                                case PrimaryColorConsumer primaryColorConsumer -> {
+                                    primaryColorConsumer.accept(currentColorDetection);
+                                }
+                            }
+
+                        } catch (RuntimeException e) {
+                            logger.error("Caught exception during listener notifying ", e);
+                        }
+                    }
+                }
+
             }
-            Advapi32Util.registryCloseKey(hkey.getValue());
+            Advapi32Util.registryCloseKey(colorHkey.getValue());
+            Advapi32Util.registryCloseKey(darkModeHkey.getValue());
         }
     }
 }

@@ -14,6 +14,7 @@
 
 package com.jthemedetecor;
 
+import com.jthemedetecor.consumers.ThemingConsumer;
 import com.jthemedetecor.util.OsInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.annotation.concurrent.ThreadSafe;
 
+import java.awt.*;
 import java.util.function.Consumer;
 
 /**
@@ -72,6 +74,10 @@ public abstract class OsThemeDetector {
         }
     }
 
+    public Color getPrimaryColor() {
+            return new java.awt.Color(0x673AB7);
+    }
+
     private static void logDetection(String desktop, Class<? extends OsThemeDetector> detectorClass) {
         logger.debug("Supported Desktop detected: {}", desktop);
         logger.debug("Creating {}...", detectorClass.getName());
@@ -88,17 +94,18 @@ public abstract class OsThemeDetector {
     /**
      * Registers a {@link Consumer} that will listen to a theme-change.
      *
-     * @param darkThemeListener the {@link Consumer} that accepts a {@link Boolean} that represents
+     * @param listener the {@link Consumer} that accepts a {@link Boolean} that represents
      *                          that the os using a dark theme or not
      */
     @ThreadSafe
-    public abstract void registerListener(@NotNull Consumer<Boolean> darkThemeListener);
+    public abstract void registerListener(@NotNull ThemingConsumer<?> listener);
 
     /**
      * Removes the listener.
      */
     @ThreadSafe
-    public abstract void removeListener(@Nullable Consumer<Boolean> darkThemeListener);
+    public abstract void removeListener(@Nullable ThemingConsumer<?> listener);
+
 
     @ThreadSafe
     public static boolean isSupported() {
@@ -112,11 +119,12 @@ public abstract class OsThemeDetector {
         }
 
         @Override
-        public void registerListener(@NotNull Consumer<Boolean> darkThemeListener) {
+        public void registerListener(@NotNull ThemingConsumer<?> listener) {
         }
 
         @Override
-        public void removeListener(@Nullable Consumer<Boolean> darkThemeListener) {
+        public void removeListener(@Nullable ThemingConsumer<?> listener) {
         }
+
     }
 }

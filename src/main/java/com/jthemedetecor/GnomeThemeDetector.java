@@ -14,6 +14,9 @@
 
 package com.jthemedetecor;
 
+import com.jthemedetecor.consumers.DarkModeConsumer;
+import com.jthemedetecor.consumers.PrimaryColorConsumer;
+import com.jthemedetecor.consumers.ThemingConsumer;
 import com.jthemedetecor.util.ConcurrentHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +47,7 @@ class GnomeThemeDetector extends OsThemeDetector {
             "gsettings get org.gnome.desktop.interface color-scheme"
     };
 
-    private final Set<Consumer<Boolean>> listeners = new ConcurrentHashSet<>();
+    private final Set<ThemingConsumer<?>> listeners = new ConcurrentHashSet<>();
     private final Pattern darkThemeNamePattern = Pattern.compile(".*dark.*", Pattern.CASE_INSENSITIVE);
 
     private volatile DetectorThread detectorThread;
@@ -74,7 +77,7 @@ class GnomeThemeDetector extends OsThemeDetector {
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public synchronized void registerListener(@NotNull Consumer<Boolean> darkThemeListener) {
+    public synchronized void registerListener(@NotNull ThemingConsumer<?> darkThemeListener) {
         Objects.requireNonNull(darkThemeListener);
         final boolean listenerAdded = listeners.add(darkThemeListener);
         final boolean singleListener = listenerAdded && listeners.size() == 1;
@@ -89,7 +92,7 @@ class GnomeThemeDetector extends OsThemeDetector {
     }
 
     @Override
-    public synchronized void removeListener(@Nullable Consumer<Boolean> darkThemeListener) {
+    public synchronized void removeListener(@Nullable ThemingConsumer<?> darkThemeListener) {
         listeners.remove(darkThemeListener);
         if (listeners.isEmpty()) {
             this.detectorThread.interrupt();
@@ -138,12 +141,20 @@ class GnomeThemeDetector extends OsThemeDetector {
                         logger.debug("Theme changed detection, dark: {}", currentDetection);
                         if (currentDetection != lastValue) {
                             lastValue = currentDetection;
-                            for (Consumer<Boolean> listener : detector.listeners) {
-                                try {
-                                    listener.accept(currentDetection);
-                                } catch (RuntimeException e) {
-                                    logger.error("Caught exception during listener notifying ", e);
+                            for (ThemingConsumer<?> listener : detector.listeners) {
+                                switch (listener) {
+                                    case DarkModeConsumer darkModeConsumer -> {
+                                        try {
+                                            darkModeConsumer.accept(currentDetection);
+                                        } catch (RuntimeException e) {
+                                            logger.error("Caught exception during listener notifying ", e);
+                                        }
+                                    }
+                                    case PrimaryColorConsumer primaryColorConsumer -> {
+                                        throw new RuntimeException("Not Implemented");
+                                    }
                                 }
+
                             }
                         }
                     }

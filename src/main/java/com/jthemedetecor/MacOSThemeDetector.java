@@ -14,6 +14,9 @@
 
 package com.jthemedetecor;
 
+import com.jthemedetecor.consumers.DarkModeConsumer;
+import com.jthemedetecor.consumers.PrimaryColorConsumer;
+import com.jthemedetecor.consumers.ThemingConsumer;
 import com.jthemedetecor.util.ConcurrentHashSet;
 import com.sun.jna.Callback;
 import de.jangassen.jfa.foundation.Foundation;
@@ -23,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,7 +42,7 @@ class MacOSThemeDetector extends OsThemeDetector {
 
     private static final Logger logger = LoggerFactory.getLogger(MacOSThemeDetector.class);
 
-    private final Set<Consumer<Boolean>> listeners = new ConcurrentHashSet<>();
+    private final Set<ThemingConsumer<?> > listeners = new ConcurrentHashSet<>();
     private final Pattern themeNamePattern = Pattern.compile(".*dark.*", Pattern.CASE_INSENSITIVE);
     private final ExecutorService callbackExecutor = Executors.newSingleThreadExecutor(DetectorThread::new);
 
@@ -98,17 +102,21 @@ class MacOSThemeDetector extends OsThemeDetector {
     }
 
     @Override
-    public void registerListener(@NotNull Consumer<Boolean> darkThemeListener) {
+    public void registerListener(@NotNull ThemingConsumer<?> darkThemeListener) {
         listeners.add(darkThemeListener);
     }
 
     @Override
-    public void removeListener(@Nullable Consumer<Boolean> darkThemeListener) {
+    public void removeListener(@Nullable ThemingConsumer<?>  darkThemeListener) {
         listeners.remove(darkThemeListener);
     }
 
+    private void notifyListeners(Color primaryColor) {
+        listeners.stream().filter(it ->it instanceof PrimaryColorConsumer).map(it -> (PrimaryColorConsumer) it).forEach(listener -> listener.accept(primaryColor));
+    }
+
     private void notifyListeners(boolean isDark) {
-        listeners.forEach(listener -> listener.accept(isDark));
+        listeners.stream().filter(it ->it instanceof DarkModeConsumer).map(it -> (DarkModeConsumer) it).forEach(listener -> listener.accept(isDark));
     }
 
     private static final class DetectorThread extends Thread {
