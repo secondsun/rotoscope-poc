@@ -13,6 +13,8 @@ repositories {
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     google()
+    maven ( "https://jitpack.io" )
+    mavenLocal()
 }
 
 
@@ -29,12 +31,14 @@ dependencies {
     implementation(compose.components.resources)
 
     implementation(libs.reorderable)
-    implementation("org.bytedeco:opencv-platform:4.10.0-1.5.11")
-    implementation(libs.filekit.compose)
+    implementation(libs.jvm.opencv)
+    implementation(libs.filekit.compose) {exclude(group = " net.java.dev.jna", module = "jna")}
 
     api(libs.datastore.preferences)
     api(libs.datastore)
-    implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
+    implementation(libs.jetbrains.lifecycle)
+    implementation(libs.jSystemThemeDetector)
+    implementation(compose.materialIconsExtended)
 }
 
 
