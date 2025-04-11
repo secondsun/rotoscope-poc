@@ -16,7 +16,7 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     google()
     maven ( "https://jitpack.io" )
-    mavenLocal()
+    //mavenLocal()
 }
 
 
@@ -72,5 +72,10 @@ compose.desktop {
         }
     }
 
+}
+
+kotlin {
+    compilerOptions.freeCompilerArgs.addAll(  "-Xextended-compiler-checks","-Xverbose-phases=ALL")
+    compilerOptions.verbose = true
 }
 
