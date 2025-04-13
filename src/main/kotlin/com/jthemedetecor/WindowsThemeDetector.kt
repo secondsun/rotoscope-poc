@@ -13,11 +13,12 @@
  */
 package com.jthemedetecor
 
-import com.jthemedetecor.consumers.DarkModeConsumer
-import com.jthemedetecor.consumers.PrimaryColorConsumer
-import com.jthemedetecor.consumers.ThemingConsumer
-import com.jthemedetecor.util.ConcurrentHashSet
+import jthemedetecor.consumers.DarkModeConsumer
+import jthemedetecor.consumers.PrimaryColorConsumer
+import jthemedetecor.consumers.ThemingConsumer
+import jthemedetecor.util.ConcurrentHashSet
 import com.sun.jna.platform.win32.*
+import jthemedetecor.OsThemeDetector
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.slf4j.Logger
@@ -39,8 +40,8 @@ internal class WindowsThemeDetector : OsThemeDetector() {
     @Volatile
     private var detectorThread: DetectorThread? = null
 
-    override fun isDark(): Boolean {
-        return Advapi32Util.registryValueExists(
+    override val isDark: Boolean
+        get() = Advapi32Util.registryValueExists(
             WinReg.HKEY_CURRENT_USER,
             DARK_MODE_REGISTRY_PATH,
             DARK_MODE_REGISTRY_VALUE
@@ -50,10 +51,9 @@ internal class WindowsThemeDetector : OsThemeDetector() {
                     DARK_MODE_REGISTRY_PATH,
                     DARK_MODE_REGISTRY_VALUE
                 ) == 0
-    }
 
-    override fun getPrimaryColor(): Color {
-        if (Advapi32Util.registryValueExists(
+    override val primaryColor: Color
+        get() = if (Advapi32Util.registryValueExists(
                 WinReg.HKEY_CURRENT_USER,
                 ACCENT_COLOR_REGISTRY_PATH,
                 ACCENT_COLOR_REGISTRY_VALUE
@@ -64,11 +64,10 @@ internal class WindowsThemeDetector : OsThemeDetector() {
                 ACCENT_COLOR_REGISTRY_PATH,
                 ACCENT_COLOR_REGISTRY_VALUE
             )
-            return Color(color)
+             Color(color)
         } else {
-            return Color(0x673AB7)
+             Color(0x673AB7)
         }
-    }
 
     @Synchronized
     override fun registerListener(darkThemeListener: ThemingConsumer<*>) {
@@ -98,7 +97,7 @@ internal class WindowsThemeDetector : OsThemeDetector() {
     /**
      * Thread implementation for detecting the theme changes
      */
-    private class DetectorThread(private val themeDetector: WindowsThemeDetector) : Thread() {
+    private class  DetectorThread(private val themeDetector: WindowsThemeDetector) : Thread() {
 
         private val job = SupervisorJob()
         private val coroutineScope = CoroutineScope(job + Dispatchers.IO)

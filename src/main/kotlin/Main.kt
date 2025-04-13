@@ -19,9 +19,9 @@ import com.google.dynamiccolor.DynamicScheme
 import com.google.dynamiccolor.MaterialDynamicColors
 import com.google.hct.Hct
 import com.google.scheme.SchemeTonalSpot
-import com.jthemedetecor.OsThemeDetector
-import com.jthemedetecor.consumers.DarkModeConsumer
-import com.jthemedetecor.consumers.PrimaryColorConsumer
+import jthemedetecor.OsThemeDetector
+import jthemedetecor.consumers.DarkModeConsumer
+import jthemedetecor.consumers.PrimaryColorConsumer
 import dev.secondsun.tools.rotoscope.data.DATA_STORE_FILE_NAME
 import dev.secondsun.tools.rotoscope.data.createDataStore
 import dev.secondsun.tools.rotoscope.ui.drawing.DrawingToolbar
@@ -43,7 +43,7 @@ fun App(prefs: DataStore<Preferences>) {
 
     val model = RotoscopeAppModel()
 
-    val detector: OsThemeDetector = OsThemeDetector.getDetector()
+    val detector: OsThemeDetector = OsThemeDetector.detector
     var isDarkMode by remember {mutableStateOf(detector.isDark)}
     var primaryColor by remember {mutableStateOf(detector.primaryColor)}
     var scheme: DynamicScheme by remember { mutableStateOf( SchemeTonalSpot(Hct.fromInt(primaryColor.rgb), isDarkMode, 0.0))}
