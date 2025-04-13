@@ -13,7 +13,6 @@
  */
 package jthemedetecor
 
-import com.jthemedetecor.WindowsThemeDetector
 import jthemedetecor.consumers.ThemingConsumer
 import jthemedetecor.util.OsInfo
 import org.slf4j.Logger

@@ -11,14 +11,13 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.jthemedetecor
+package jthemedetecor
 
 import jthemedetecor.consumers.DarkModeConsumer
 import jthemedetecor.consumers.PrimaryColorConsumer
 import jthemedetecor.consumers.ThemingConsumer
 import jthemedetecor.util.ConcurrentHashSet
 import com.sun.jna.platform.win32.*
-import jthemedetecor.OsThemeDetector
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.slf4j.Logger
@@ -52,6 +51,7 @@ internal class WindowsThemeDetector : OsThemeDetector() {
                     DARK_MODE_REGISTRY_VALUE
                 ) == 0
 
+    @OptIn(ExperimentalStdlibApi::class)
     override val primaryColor: Color
         get() = if (Advapi32Util.registryValueExists(
                 WinReg.HKEY_CURRENT_USER,
@@ -59,12 +59,18 @@ internal class WindowsThemeDetector : OsThemeDetector() {
                 ACCENT_COLOR_REGISTRY_VALUE
             )
         ) {
-            val color = Advapi32Util.registryGetIntValue(
+            val colorABGR = Advapi32Util.registryGetIntValue(
                 WinReg.HKEY_CURRENT_USER,
                 ACCENT_COLOR_REGISTRY_PATH,
                 ACCENT_COLOR_REGISTRY_VALUE
             )
-             Color(color)
+
+            val colorARGB = (colorABGR and 0xff000000.toInt()) or
+                            ((colorABGR and 0x000000ff) shl 16) or
+                            ((colorABGR and 0x0000ff00)) or
+                            ((colorABGR and 0x00ff0000) shr 16)
+
+             Color(colorARGB)
         } else {
              Color(0x673AB7)
         }
