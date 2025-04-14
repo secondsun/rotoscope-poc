@@ -17,6 +17,7 @@ import jthemedetecor.consumers.DarkModeConsumer
 import jthemedetecor.consumers.PrimaryColorConsumer
 import jthemedetecor.consumers.ThemingConsumer
 import jthemedetecor.util.ConcurrentHashSet
+import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
@@ -63,7 +64,7 @@ internal class GnomeThemeDetector : OsThemeDetector() {
     }
 
     @Synchronized
-    override fun registerListener(darkThemeListener: ThemingConsumer<*>) {
+    override fun registerListener(scope: CoroutineScope, darkThemeListener: ThemingConsumer<*>) {
         Objects.requireNonNull(darkThemeListener)
         val listenerAdded = listeners.add(darkThemeListener)
         val singleListener = listenerAdded && listeners.size == 1

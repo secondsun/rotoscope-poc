@@ -20,6 +20,7 @@ import jthemedetecor.util.ConcurrentHashSet
 import com.sun.jna.Callback
 import de.jangassen.jfa.foundation.Foundation
 import de.jangassen.jfa.foundation.ID
+import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Color
@@ -111,7 +112,7 @@ internal class MacOSThemeDetector : OsThemeDetector() {
         return themeName != null && themeNamePattern.matcher(themeName).matches()
     }
 
-    override fun registerListener(darkThemeListener: ThemingConsumer<*>) {
+    override fun registerListener(scope: CoroutineScope, darkThemeListener: ThemingConsumer<*>) {
         listeners.add(darkThemeListener)
     }
 

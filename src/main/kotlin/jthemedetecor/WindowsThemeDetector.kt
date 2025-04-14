@@ -76,17 +76,21 @@ internal class WindowsThemeDetector : OsThemeDetector() {
         }
 
     @Synchronized
-    override fun registerListener(darkThemeListener: ThemingConsumer<*>) {
+    override fun registerListener(scope: CoroutineScope, darkThemeListener: ThemingConsumer<*>) {
         Objects.requireNonNull(darkThemeListener)
         val listenerAdded = listeners.add(darkThemeListener)
         val singleListener = listenerAdded && listeners.size == 1
         val currentDetectorThread = detectorThread
-        val threadInterrupted = currentDetectorThread != null && currentDetectorThread.isInterrupted
+        val threadInterrupted =
+            (currentDetectorThread != null) && (currentDetectorThread as DetectorThread).isInterrupted
 
         if (singleListener || threadInterrupted) {
             val newDetectorThread = DetectorThread(this)
             this.detectorThread = newDetectorThread
-            newDetectorThread.start()
+                scope.async {
+                    newDetectorThread.run()
+                }
+
         }
     }
 
@@ -94,7 +98,7 @@ internal class WindowsThemeDetector : OsThemeDetector() {
     override fun removeListener(darkThemeListener: ThemingConsumer<*>?) {
         listeners.remove(darkThemeListener)
         if (listeners.isEmpty()) {
-            detectorThread!!.interrupt()
+            detectorThread!!.isInterrupted = true
             this.detectorThread = null
         }
     }
@@ -103,11 +107,11 @@ internal class WindowsThemeDetector : OsThemeDetector() {
     /**
      * Thread implementation for detecting the theme changes
      */
-    private class  DetectorThread(private val themeDetector: WindowsThemeDetector) : Thread() {
+    private class  DetectorThread(private val themeDetector: WindowsThemeDetector) {
 
         private val job = SupervisorJob()
         private val coroutineScope = CoroutineScope(job + Dispatchers.IO)
-
+        var isInterrupted = false;
 
         private var lastDarkModeValue: Boolean
         private var lastColorValue: Color
@@ -115,12 +119,9 @@ internal class WindowsThemeDetector : OsThemeDetector() {
         init {
             this.lastDarkModeValue = themeDetector.isDark
             this.lastColorValue = themeDetector.primaryColor
-            this.name = "Windows 10 Theme Detector Thread"
-            this.isDaemon = true
-            this.priority = NORM_PRIORITY - 1
         }
 
-        override fun run() {
+        suspend fun run() {
 
             val colorHkey = WinReg.HKEYByReference()
 
@@ -146,7 +147,7 @@ internal class WindowsThemeDetector : OsThemeDetector() {
                 throw Win32Exception(colorErr)
             }
 
-            runBlocking {
+
                 coroutineScope.async {
                     while (!this@DetectorThread.isInterrupted) {
                         val darkModeErrFlow = flow<Int> {
@@ -221,7 +222,7 @@ internal class WindowsThemeDetector : OsThemeDetector() {
                         }
                     }
                 }.await()
-            }
+
 
             Advapi32Util.registryCloseKey(colorHkey.value)
             Advapi32Util.registryCloseKey(darkModeHkey.value)

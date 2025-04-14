@@ -15,6 +15,7 @@ package jthemedetecor
 
 import jthemedetecor.consumers.ThemingConsumer
 import jthemedetecor.util.OsInfo
+import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import oshi.annotation.concurrent.ThreadSafe
@@ -40,7 +41,7 @@ abstract class OsThemeDetector internal constructor() {
      * that the os using a dark theme or not
      */
     @ThreadSafe
-    abstract fun registerListener(listener: ThemingConsumer<*>)
+    abstract fun registerListener(scope: CoroutineScope, listener: ThemingConsumer<*>)
 
     /**
      * Removes the listener.
@@ -52,7 +53,7 @@ abstract class OsThemeDetector internal constructor() {
     private class EmptyDetector : OsThemeDetector() {
         override val isDark = false
 
-        override fun registerListener(listener: ThemingConsumer<*>) {
+        override fun registerListener(scope: CoroutineScope, listener: ThemingConsumer<*>) {
         }
 
         override fun removeListener(listener: ThemingConsumer<*>?) {

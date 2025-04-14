@@ -14,9 +14,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.google.dynamiccolor.DynamicColor
 import com.google.dynamiccolor.DynamicScheme
-import com.google.dynamiccolor.MaterialDynamicColors
 import com.google.hct.Hct
 import com.google.scheme.SchemeTonalSpot
 import jthemedetecor.OsThemeDetector
@@ -36,34 +34,32 @@ import dev.secondsun.tools.rotoscope.ui.video.VideoUtilBuilder
 @Composable
 @Preview
 fun App(prefs: DataStore<Preferences>) {
-
+    println("App composition")
     var util by remember { mutableStateOf(VideoUtil("")) }
     val status by util.status.collectAsState()
-
-
-    val model = RotoscopeAppModel()
-
-    val detector: OsThemeDetector = OsThemeDetector.detector
+    val model by remember {  mutableStateOf( RotoscopeAppModel()) }
+    val detector: OsThemeDetector by remember {mutableStateOf( OsThemeDetector.detector) }
     var isDarkMode by remember {mutableStateOf(detector.isDark)}
     var primaryColor by remember {mutableStateOf(detector.primaryColor)}
-    var scheme: DynamicScheme by remember { mutableStateOf( SchemeTonalSpot(Hct.fromInt(primaryColor.rgb), isDarkMode, 0.0))}
+    var scheme: DynamicScheme by remember(key1 = {(if (isDarkMode)0 else 1) * 3 + primaryColor.rgb}) { mutableStateOf( SchemeTonalSpot(Hct.fromInt(primaryColor.rgb), isDarkMode, 0.0))}
+    val scope = rememberCoroutineScope()
 
-    detector.registerListener (DarkModeConsumer( {
-        isDark ->
-        if (isDark) {
-            isDarkMode = true
-        } else {
-            isDarkMode = false
+    SideEffect {  }
+
+    detector.registerListener(scope, DarkModeConsumer({ isDark ->
+        if (isDark != isDarkMode) {
+            isDarkMode = isDark
+            scheme = SchemeTonalSpot(Hct.fromInt(primaryColor.rgb), isDarkMode, 0.0)
         }
-        scheme = SchemeTonalSpot(Hct.fromInt(primaryColor.rgb), isDarkMode, 0.0)
-
     }))
 
-    detector.registerListener (PrimaryColorConsumer( {
-            color ->
-        primaryColor = color
-        scheme = SchemeTonalSpot(Hct.fromInt(primaryColor.rgb), isDarkMode, 0.0)
+    detector.registerListener(scope, PrimaryColorConsumer({ color ->
+        if (primaryColor != color) {
+            primaryColor = color
+            scheme = SchemeTonalSpot(Hct.fromInt(primaryColor.rgb), isDarkMode, 0.0)
+        }
     }))
+
 
     MaterialTheme(colors = Colors(
         primary = Color(scheme.primary),
