@@ -4,6 +4,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     kotlin("jvm") version "2.0.20"
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.20"
+    kotlin("plugin.serialization") version "1.9.0"
     id("org.jetbrains.compose") version "1.7.3"
 }
 
@@ -31,6 +32,14 @@ dependencies {
     implementation(compose.material)
     implementation(compose.desktop.common)
     implementation(compose.components.resources)
+
+    // Kotlin and Serialization
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    // Other dependencies
+    // Add other dependencies as needed
+
 
     implementation(libs.reorderable)
     implementation(libs.jvm.opencv)

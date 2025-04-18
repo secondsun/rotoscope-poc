@@ -93,10 +93,10 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
 fun PolystackToolbar(modifier: Modifier = Modifier, addRemoveAction: AddRemoveAction = AddRemoveAction.TODO) {
     Row(modifier.wrapContentHeight()) {
         IconButton(onClick = { addRemoveAction.add() }) {
-            Icon(Icons.Default.Add, "Add Polygon")
+            Icon(Icons.Default.Add, tint = MaterialTheme.colors.onPrimary,contentDescription = "Add Polygon")
         }
         IconButton(onClick = { addRemoveAction.remove() }) {
-            Icon(Icons.Default.Delete, "Remove Polygon")
+            Icon(Icons.Default.Delete,  tint = MaterialTheme.colors.onPrimary, contentDescription = "Remove Polygon")
         }
 
     }

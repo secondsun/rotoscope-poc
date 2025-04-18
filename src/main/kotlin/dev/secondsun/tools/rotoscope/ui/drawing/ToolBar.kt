@@ -28,10 +28,11 @@ fun Preview() {
 @Composable
 fun DrawingToolbar(modifier: Modifier = Modifier, model: RotoscopeAppModel) {
     val currentTool by model.tool
+    println("DrawingToolbar Composition")
     Box(modifier) {
 
         Row(modifier = Modifier.wrapContentWidth().fillMaxHeight()) {
-            Column(modifier = Modifier.width(120.dp).background(Color.Red).fillMaxHeight()) {
+            Column(modifier = Modifier.width(120.dp).fillMaxHeight()) {
                 Row {
                     CreatePolygon(onClick = {model.setTool(Tools.PolygonStackTool)})
                 }
@@ -62,6 +63,6 @@ fun SelectColor(onClick: () -> Unit) {
 @Composable
 fun CreatePolygon(onClick: () -> Unit) {
     Button(onClick = onClick) {
-        Icon(painterResource(Res.drawable.ic_polyline), tint = MaterialTheme.colors.onPrimary, contentDescription = "")
+        Icon( painterResource(Res.drawable.ic_polyline), tint = MaterialTheme.colors.onPrimary, contentDescription = "")
     }
 }

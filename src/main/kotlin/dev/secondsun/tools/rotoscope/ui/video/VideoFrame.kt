@@ -26,7 +26,7 @@ import dev.secondsun.tools.rotoscope.ui.vo.Polygon
 
 @Composable
 fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model : RotoscopeAppModel) {
-
+    println("VideoFrame Composition")
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     var boxSize by remember { mutableStateOf(IntSize.Zero) } // Store the Box size
