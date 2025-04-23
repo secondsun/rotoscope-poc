@@ -56,7 +56,8 @@ class ProjectRepository(private val dataStore: DataStore<Preferences>) {
     private fun Project.prepareToSave():Project {
         return Project(
             this.name,
-            this.filePath,
+            this.videoFilePath,
+            projectFilePathname = this.projectFilePathname,
             framePolystacks = this.framePolystacks.mapValues { PolyStackData(polygons = it.value.polygons.map{ PolygonData(it.color,it.key,it.points.toList())}) }.toMutableMap()
         )
 

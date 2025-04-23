@@ -13,7 +13,8 @@ import java.util.*
 @Serializable
 data class Project(
     val name: String = "Untitled Project",
-    val filePath: String = "",
+    val videoFilePath: String = "",
+    val projectFilePathname: String = "",
     val framePolystacks: MutableMap<Int, PolyStackData> = mutableMapOf(),
     val palette: IntArray = generateDefault15BitPalette()
 ) {
@@ -92,6 +93,39 @@ data class Project(
             return Color(r5bit * 8, g5bit * 8, b5bit * 8, color.alpha)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Project
+
+        if (name != other.name) return false
+        if (videoFilePath != other.videoFilePath) return false
+        if (projectFilePathname != other.projectFilePathname) return false
+        if (framePolystacks != other.framePolystacks) return false
+        if (!palette.contentEquals(other.palette)) return false
+        if (currentFrame != other.currentFrame) return false
+        if (currentPolyIndex != other.currentPolyIndex) return false
+        if (modified != other.modified) return false
+        if (currentPaletteIndex != other.currentPaletteIndex) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + videoFilePath.hashCode()
+        result = 31 * result + projectFilePathname.hashCode()
+        result = 31 * result + framePolystacks.hashCode()
+        result = 31 * result + palette.contentHashCode()
+        result = 31 * result + currentFrame.hashCode()
+        result = 31 * result + currentPolyIndex.hashCode()
+        result = 31 * result + modified.hashCode()
+        result = 31 * result + currentPaletteIndex.hashCode()
+        return result
+    }
+
 }
 
 /**

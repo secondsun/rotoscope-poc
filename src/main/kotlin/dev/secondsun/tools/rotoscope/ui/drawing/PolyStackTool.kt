@@ -86,7 +86,7 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
                                         (canvasHeight*((it.y.toFloat()/poly.bounds.height.toFloat()))).toInt()
                                     ) }) 
                                 },
-                                //palette = model.palette
+                                palette = model.palette
                             )
                         }
                     }

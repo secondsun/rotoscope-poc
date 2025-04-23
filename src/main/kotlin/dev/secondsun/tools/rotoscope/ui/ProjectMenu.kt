@@ -73,7 +73,7 @@ fun ProjectMenu(model: RotoscopeAppModel) {
         onResult = { platformFile ->
             platformFile?.let {
                 val path = it.path ?: it.name
-                model.filePath(path)
+                model.projectFilePathname(path)
             }
         }
     )
@@ -93,7 +93,7 @@ fun ProjectMenu(model: RotoscopeAppModel) {
     ) {
         Column {
             DropdownMenuItem(onClick = {
-                model.newProject()
+                TODO("Create new project dialog")
                 showMenu = false
             }) {
                 Icon(Icons.Default.Add, contentDescription = "New Project")
@@ -117,7 +117,9 @@ fun ProjectMenu(model: RotoscopeAppModel) {
             }
             
             DropdownMenuItem(onClick = {
-                ioScope.launch { saveProjectLauncher.launch("test","json") }
+                val file = File(model.project.value.projectFilePathname)
+
+                ioScope.launch { saveProjectLauncher.launch(file.name,file.extension) }
                 showMenu = false
             }) {
                 Icon(

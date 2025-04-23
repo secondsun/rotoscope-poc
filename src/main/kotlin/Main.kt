@@ -82,9 +82,9 @@ fun App(prefs: DataStore<Preferences>) {
     val projectState by model.project.collectAsState()
     
     // Update video when project changes
-    LaunchedEffect(key1 = projectState.filePath) {
-        if (projectState.filePath.isNotEmpty()) {
-            util = VideoUtilBuilder.open(PlatformFile(File(projectState.filePath)))
+    LaunchedEffect(key1 = projectState.projectFilePathname) {
+        if (projectState.projectFilePathname.isNotEmpty()) {
+            util = VideoUtilBuilder.open(PlatformFile(File(projectState.videoFilePath)))
         }
     }
 
@@ -132,8 +132,7 @@ fun App(prefs: DataStore<Preferences>) {
                                 when(it.extension) {
                                     "mp4", "mkv", "avi" -> {
                                         // Update model with the file path
-                                        model.filePath(it.path ?: it.name)
-
+                                        model.newProject("Unnamed Project", it.path)
                                         // Open the video
                                         util = VideoUtilBuilder.open(it)
                                     }

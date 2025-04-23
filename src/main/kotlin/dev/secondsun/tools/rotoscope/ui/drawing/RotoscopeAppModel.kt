@@ -1,7 +1,5 @@
 package dev.secondsun.tools.rotoscope.ui.drawing
 
-import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
@@ -92,13 +90,17 @@ class RotoscopeAppModel(
     }
 
     // File path accessor and setter
-    val filePath get() = _project.value.filePath
-    fun filePath(path: String) {
+    val projectFilePathname get() = _project.value.projectFilePathname
+    fun projectFilePathname(path: String) {
         // Create a new project with the given file path
-        val newProject = Project(filePath = path)
+        val newProject = Project(projectFilePathname = path)
         _project.value = newProject
         updatePolygonList()
     }
+
+    val videoFilePathname get() = _project.value.videoFilePath
+
+
 
     // Set the current tool
     fun setTool(tool: Tools) {
@@ -122,9 +124,7 @@ class RotoscopeAppModel(
     fun addPointToCurrentPoly(point: PolyPoint) {
         if (currentPolygonStack.polys.isEmpty()) {
             currentPolygonStack.polys.add(Polygon())
-            if (polyIndex.value < 0) {
-                polyIndex(0)
-            }
+            polyIndex(0)
         }
 
         currentPolygonStack.polys[polyIndex.value].addPoint(point)
@@ -149,7 +149,7 @@ class RotoscopeAppModel(
             currentPolygonStack.polys.add(polygon)
         }
         updatePolygonList()
-        polyIndex(index + 1)
+        polyIndex(currentPolygonStack.polys.size-1)
         _project.value.markModified()
     }
 
@@ -158,7 +158,7 @@ class RotoscopeAppModel(
         if (currentPolygonStack.polys.isNotEmpty() && index >= 0 && index < currentPolygonStack.polys.size) {
             currentPolygonStack.polys.removeAt(index)
             if (polyIndex.value >= currentPolygonStack.polys.size) {
-                polyIndex(index - 1)
+                polyIndex(currentPolygonStack.polys.size-1)
             }
             updatePolygonList()
             _project.value.markModified()
@@ -181,13 +181,13 @@ class RotoscopeAppModel(
         projectRepository?.loadProject(file)?.let { loadedProject ->
             // Save current project before loading
             //saveCurrentPolystack()
-            
-            // Set new project
-            _project.value = loadedProject
+
+            // Set new project with the file path remembered
+            _project.value = loadedProject.copy(projectFilePathname = file.absolutePath)
             currentPolygonStack = _project.value.getCurrentPolystack()
             // Update UI
             updatePolygonList()
-            //When the polugons are deserialized, they don't have bounds set correctly
+            //When the polygons are deserialized, they don't have bounds set correctly
             polygonList.value.forEach { it.recalculateBounds() }
             return true
         }
@@ -198,14 +198,15 @@ class RotoscopeAppModel(
     suspend fun saveProject(file: File): Boolean {
         // Save current polystack before saving project
         saveCurrentPolystack()
-        
+
         // Save project
-        return projectRepository?.saveProject(_project.value, file) ?: false
+
+        return projectRepository?.saveProject(_project.value.copy(projectFilePathname = file.absolutePath), file) ?: false
     }
 
     // Create a new project
-    fun newProject(name: String = "Untitled Project") {
-        _project.value = Project(name = name)
+    fun newProject(name: String = "Untitled Project", videoFileName: String) {
+        _project.value = Project(name = name, videoFilePath = videoFileName)
         currentPolygonStack = _project.value.getCurrentPolystack()
         addPolygon()
         updatePolygonList()
