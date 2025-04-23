@@ -7,7 +7,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
 import java.util.*
 
-class Polygon(val color:Color = Color.Gray, val key: UUID = UUID.randomUUID()) {
+class Polygon(var color:Color = Color.Gray, val key: UUID = UUID.randomUUID()) {
     val normalizePoints: List<PolyPoint>
         get() {
             return this.points.map { PolyPoint(it.x - bounds.minX, it.y - bounds.minY) }.toList()

@@ -4,8 +4,11 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -17,6 +20,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.secondsun.tools.rotoscope.ui.drawPoly
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
@@ -42,16 +46,18 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
         .fillMaxHeight()
         .wrapContentWidth()) {
 
-        PolystackToolbar(addRemoveAction = object: AddRemoveAction {
-            override fun add() {
-                model.addPolygon()
+        PolystackToolbar(
+            model = model,
+            addRemoveAction = object: AddRemoveAction {
+                override fun add() {
+                    model.addPolygon()
+                }
+        
+                override fun remove() {
+                    model.removePolygon()
+                }
             }
-
-            override fun remove() {
-                model.removePolygon()
-            }
-
-        })
+        )
 
         LazyColumn(modifier = Modifier.wrapContentSize(),
             state = lazyListState,
@@ -90,15 +96,31 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
 }
 
 @Composable
-fun PolystackToolbar(modifier: Modifier = Modifier, addRemoveAction: AddRemoveAction = AddRemoveAction.TODO) {
+fun PolystackToolbar(
+    modifier: Modifier = Modifier, 
+    model: RotoscopeAppModel,
+    addRemoveAction: AddRemoveAction = AddRemoveAction.TODO
+) {
+    val selectedColorIndex = model.currentPaletteIndex.value
+    val palette = model.palette
+    
     Row(modifier.wrapContentHeight()) {
         IconButton(onClick = { addRemoveAction.add() }) {
-            Icon(Icons.Default.Add, tint = MaterialTheme.colors.onPrimary,contentDescription = "Add Polygon")
+            Icon(Icons.Default.Add, tint = MaterialTheme.colors.onPrimary, contentDescription = "Add Polygon")
         }
         IconButton(onClick = { addRemoveAction.remove() }) {
-            Icon(Icons.Default.Delete,  tint = MaterialTheme.colors.onPrimary, contentDescription = "Remove Polygon")
+            Icon(Icons.Default.Delete, tint = MaterialTheme.colors.onPrimary, contentDescription = "Remove Polygon")
         }
-
+        
+        // Color selection button
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .size(24.dp)
+                .background(Color(palette[selectedColorIndex]))
+                .border(1.dp, Color.White)
+                .clickable { model.setTool(Tools.ColorPickerTool) }
+        )
     }
 }
 

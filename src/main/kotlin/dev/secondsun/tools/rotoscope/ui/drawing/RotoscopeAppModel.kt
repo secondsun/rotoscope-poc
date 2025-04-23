@@ -17,23 +17,43 @@ import dev.secondsun.tools.rotoscope.ui.vo.Project
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.io.File
 
 class RotoscopeAppModel(
     val dataSource: TempDataSource = TempDataSource(),
     val projectRepository: ProjectRepository? = null
 ) {
-    // Generate random colors for the color palette
+    // Get the project's color palette
     val palette: IntArray
-        get() {
-            return IntArray(15).map {
-                Color(
-                    (Math.random() * 255).toInt(),
-                    (Math.random() * 255).toInt(),
-                    (Math.random() * 255).toInt()
-                ).toArgb()
-            }.toIntArray()
+        get() = project.value.palette
+        
+    // Current selected palette index getter
+    val currentPaletteIndex: State<Int> 
+        get() = project.value.currentPaletteIndex
+        
+    // Set the current palette index
+    fun setPaletteIndex(index: Int) {
+        if (index in 0 until palette.size) {
+            _project.update { project ->
+                project.currentPaletteIndex.value = index
+                project
+            }
         }
+    }
+    
+    // Update a specific color in the palette
+    fun updatePaletteColor(index: Int, color: Color) {
+        if (index in 0 until palette.size) {
+            val newPalette = palette.copyOf()
+            newPalette[index] = Project.convertTo15BitColor(color).toArgb()
+            _project.update { project ->
+                val updatedProject = project.copy(palette = newPalette)
+                updatedProject.markModified()
+                updatedProject
+            }
+        }
+    }
 
     // Selected tool state
     private var _tool = mutableStateOf(Tools.PolygonStackTool)
@@ -83,6 +103,19 @@ class RotoscopeAppModel(
     // Set the current tool
     fun setTool(tool: Tools) {
         _tool.value = tool
+    }
+
+    fun setCurrentPolygonColor(color:Int) {
+        if (currentPolygonStack.polys.isEmpty()) {
+            currentPolygonStack.polys.add(Polygon())
+            if (polyIndex.value < 0) {
+                polyIndex(0)
+            }
+        }
+
+        currentPolygonStack.polys[polyIndex.value].color = Color(color)
+        updatePolygonList()
+        _project.value.markModified()
     }
 
     // Add a point to the current polygon
