@@ -14,12 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import dev.secondsun.tools.rotoscope.ui.drawPoly
+import dev.secondsun.tools.rotoscope.ui.drawing.drawPoly
 import dev.secondsun.tools.rotoscope.ui.drawing.RotoscopeAppModel
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
 import dev.secondsun.tools.rotoscope.ui.vo.Polygon
@@ -66,10 +65,10 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model : Roto
                         srcOffset = IntOffset(-offset.x.toInt(), -offset.y.toInt())
                     )
                     polygons.forEach {poly->
-                        drawPoly(Polygon(poly.color,poly.key).apply { points.addAll(poly.points.map {
+                        drawPoly(poly = Polygon(poly.colorIndex,poly.key).apply { points.addAll(poly.points.map {
                                 PolyPoint(it.x+offset.x.toInt(), it.y+offset.y.toInt())
                             })
-                        })
+                        }, palette =model.palette)
                     }
                 }
             }

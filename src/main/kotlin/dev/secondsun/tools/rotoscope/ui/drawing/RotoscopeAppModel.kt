@@ -105,15 +105,15 @@ class RotoscopeAppModel(
         _tool.value = tool
     }
 
-    fun setCurrentPolygonColor(color:Int) {
+    fun setCurrentPolygonColorIndex(colorIndex: Int) {
         if (currentPolygonStack.polys.isEmpty()) {
             currentPolygonStack.polys.add(Polygon())
             if (polyIndex.value < 0) {
                 polyIndex(0)
             }
         }
-
-        currentPolygonStack.polys[polyIndex.value].color = Color(color)
+    
+        currentPolygonStack.polys[polyIndex.value].colorIndex = colorIndex
         updatePolygonList()
         _project.value.markModified()
     }
@@ -142,7 +142,7 @@ class RotoscopeAppModel(
     }
 
     // Add a new polygon
-    fun addPolygon(index: Int = polyIndex.value, polygon: Polygon = Polygon()) {
+    fun addPolygon(index: Int = polyIndex.value, polygon: Polygon = Polygon(colorIndex = currentPaletteIndex.value)) {
         if (index >= 0 && index < currentPolygonStack.polys.size) {
             currentPolygonStack.polys.add(index + 1, polygon)
         } else {

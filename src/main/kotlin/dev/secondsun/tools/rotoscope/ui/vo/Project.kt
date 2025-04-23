@@ -126,14 +126,14 @@ data class PointData(
  */
 fun Polygon.toPolygonData(): PolygonData {
     return PolygonData(
-        color = this.color.value,
+        color = this.colorIndex.toULong(),
         key = this.key.toString(),
         points = this.points.map { PointData(it.x, it.y) }
     )
 }
 
 fun PolygonData.toPolygon(): Polygon {
-    return Polygon(Color(color), UUID.fromString(key)).apply {
+    return Polygon(color.toInt(), UUID.fromString(key)).apply {
         points.addAll(this@toPolygon.points.map { PolyPoint(it.x, it.y) })
     }
 }

@@ -49,7 +49,7 @@ fun ColorPicker(modifier: Modifier = Modifier, model: RotoscopeAppModel) {
                     isSelected = i == selectedIndex,
                     onClick = { 
                         model.setPaletteIndex(i)
-                        model.setCurrentPolygonColor(palette[i])
+                        model.setCurrentPolygonColorIndex(i)
                     },
                     onLongClick = {
                         editingColorIndex = i
@@ -67,7 +67,7 @@ fun ColorPicker(modifier: Modifier = Modifier, model: RotoscopeAppModel) {
                     isSelected = i == selectedIndex,
                     onClick = { 
                         model.setPaletteIndex(i)
-                        model.setCurrentPolygonColor(palette[i])
+                        model.setCurrentPolygonColorIndex(i)
                     },
                     onLongClick = {
                         editingColorIndex = i

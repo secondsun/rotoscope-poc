@@ -7,8 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -22,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.secondsun.tools.rotoscope.ui.drawPoly
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
 import dev.secondsun.tools.rotoscope.ui.vo.Polygon
 import sh.calvin.reorderable.ReorderableItem
@@ -82,10 +79,15 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
 
                             //The big nasty thing scales the polygons so they draw inside of the canvas tile
 
-                            drawPoly(Polygon(poly.color,poly.key).apply { points.addAll(poly.normalizePoints.map { PolyPoint(
-                                ((it.x.toFloat()/poly.bounds.width.toFloat())*canvasWidth).toInt(),
-                                (canvasHeight*((it.y.toFloat()/poly.bounds.height.toFloat()))).toInt()
-                            ) }) })
+                            drawPoly(
+                                Polygon(poly.colorIndex, poly.key).apply { 
+                                    points.addAll(poly.normalizePoints.map { PolyPoint(
+                                        ((it.x.toFloat()/poly.bounds.width.toFloat())*canvasWidth).toInt(),
+                                        (canvasHeight*((it.y.toFloat()/poly.bounds.height.toFloat()))).toInt()
+                                    ) }) 
+                                },
+                                //palette = model.palette
+                            )
                         }
                     }
 

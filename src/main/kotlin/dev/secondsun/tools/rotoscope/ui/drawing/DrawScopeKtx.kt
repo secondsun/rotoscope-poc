@@ -1,27 +1,34 @@
-package dev.secondsun.tools.rotoscope.ui
+package dev.secondsun.tools.rotoscope.ui.drawing
 
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import dev.secondsun.tools.rotoscope.ui.vo.Polygon
 
-fun DrawScope.drawPoly(poly : Polygon) {
-    if (!poly.points.isEmpty()) {
-        val wallpaint: Paint = Paint()
-        wallpaint.color = poly.color
-        wallpaint.style = PaintingStyle.Fill
+fun DrawScope.drawPoly(poly: Polygon, pathFilter: Path.() -> Path = { this }, palette: IntArray? = null) {
+    drawPath(
+        pathFilter(Path().apply {
 
-        val wallpath: Path = Path()
-        wallpath.reset() // only needed when reusing this path for a new build
-        wallpath.moveTo(
-            poly.points[0].x.toFloat(),
-            poly.points[0].y.toFloat()
-        ) // used for first point
-        poly.points.reversed().forEach {
-            wallpath.lineTo(it.x.toFloat(), it.y.toFloat())
-            this.drawPath(path = wallpath, color = poly.color, style = Fill)
-        }
-    }
+            if (poly.points.isNotEmpty()) {
+                val firstPoint = poly.points.first()
+
+                moveTo(firstPoint.x.toFloat(), firstPoint.y.toFloat())
+
+                poly.points.drop(1).forEach {
+                    lineTo(it.x.toFloat(), it.y.toFloat())
+                }
+
+                close()
+
+            }
+        }),
+        color = if (palette != null && poly.colorIndex >= 0 && poly.colorIndex < palette.size) {
+            Color(palette[poly.colorIndex])
+        } else {
+            // Fallback color if palette is not available or index is out of bounds
+            Color.Gray
+        },
+        style = Fill
+    )
 }

@@ -7,7 +7,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
 import java.util.*
 
-class Polygon(var color:Color = Color.Gray, val key: UUID = UUID.randomUUID()) {
+class Polygon(var colorIndex: Int = 0, val key: UUID = UUID.randomUUID()) {
     val normalizePoints: List<PolyPoint>
         get() {
             return this.points.map { PolyPoint(it.x - bounds.minX, it.y - bounds.minY) }.toList()
@@ -68,3 +68,23 @@ data class Bounds(val width: Int = 0, val height: Int = 0, val minX: Int = 0, va
 data class PolyPoint(val x :Int,val y :Int)
 
 data class PolygonStack( val polys:MutableList<Polygon> = mutableListOf<Polygon>())
+
+// The Polygon class needs equals and hashCode implemented since it's not a data class
+// but we want proper behavior when stored in collections
+fun Polygon.equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is Polygon) return false
+    
+    if (colorIndex != other.colorIndex) return false
+    if (key != other.key) return false
+    if (points != other.points) return false
+    
+    return true
+}
+
+fun Polygon.hashCode(): Int {
+    var result = colorIndex
+    result = 31 * result + key.hashCode()
+    result = 31 * result + points.hashCode()
+    return result
+}
