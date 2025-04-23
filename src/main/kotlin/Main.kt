@@ -32,9 +32,10 @@ import dev.secondsun.tools.rotoscope.ui.startscreen.ProjectStartScreenViewModel
 import dev.secondsun.tools.rotoscope.ui.video.VideoFrame
 import dev.secondsun.tools.rotoscope.ui.video.VideoUtil
 import dev.secondsun.tools.rotoscope.ui.video.VideoUtilBuilder
-import io.github.vinceglb.filekit.core.PlatformFile
-import io.github.vinceglb.filekit.core.extension
-import kotlinx.coroutines.flow.collectLatest
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.extension
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.launch
 import java.io.File
 

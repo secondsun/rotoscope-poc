@@ -43,7 +43,8 @@ dependencies {
 
     implementation(libs.reorderable)
     implementation(libs.jvm.opencv)
-    implementation(libs.filekit.compose) {exclude(group = " net.java.dev.jna", module = "jna")}
+    implementation(libs.filekit.dialogs)
+    implementation(libs.filekit.dialogs.compose)
 
     api(libs.datastore.preferences)
     api(libs.datastore)
@@ -78,6 +79,9 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "rotoscope-poc"
             packageVersion = "1.0.0"
+            linux {
+                modules("jdk.security.auth")
+            }
         }
     }
 

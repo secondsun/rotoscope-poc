@@ -154,6 +154,8 @@ class RotoscopeAppModel(
             currentPolygonStack = _project.value.getCurrentPolystack()
             // Update UI
             updatePolygonList()
+            //When the polugons are deserialized, they don't have bounds set correctly
+            polygonList.value.forEach { it.recalculateBounds() }
             return true
         }
         return false
@@ -180,7 +182,10 @@ class RotoscopeAppModel(
     // Update the polygon list for UI
     private fun updatePolygonList() {
         //currentPolygonStack = _project.value.getCurrentPolystack()
+
         polygonList.value = currentPolygonStack.polys.toList()
+
+
     }
 
     // Save the current polystack to the project

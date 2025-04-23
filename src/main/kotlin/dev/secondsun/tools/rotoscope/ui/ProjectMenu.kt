@@ -9,10 +9,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.secondsun.tools.rotoscope.ui.drawing.RotoscopeAppModel
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
-import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.path
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,10 +33,9 @@ fun ProjectMenu(model: RotoscopeAppModel) {
     
     // File picker launcher for opening projects
     val openProjectLauncher = rememberFilePickerLauncher(
-        type = PickerType.File(listOf("json")),
-        mode = PickerMode.Single,
+        type = FileKitType.File(listOf("json")),
         title = "Open Project",
-        initialDirectory = System.getProperty("user.home"),
+        directory = PlatformFile (System.getProperty("user.home")),
         onResult = { platformFile ->
             platformFile?.let {
                 ioScope.launch {
@@ -43,11 +46,8 @@ fun ProjectMenu(model: RotoscopeAppModel) {
     )
     
     // File picker launcher for saving projects
-    val saveProjectLauncher = rememberFilePickerLauncher(
-        type = PickerType.File(listOf("json")),
-        mode = PickerMode.Single,
-        title = "Save Project",
-        initialDirectory = System.getProperty("user.home"),
+    val saveProjectLauncher = rememberFileSaverLauncher (
+        //directory = PlatformFile(System.getProperty("user.home")),
         onResult = { platformFile ->
             platformFile?.let {
                 ioScope.launch {
@@ -66,10 +66,10 @@ fun ProjectMenu(model: RotoscopeAppModel) {
     
     // File picker launcher for opening videos
     val openVideoLauncher = rememberFilePickerLauncher(
-        type = PickerType.Video,
-        mode = PickerMode.Single,
+        type = FileKitType.Video,
+        mode = FileKitMode.Single,
         title = "Open Video",
-        initialDirectory = System.getProperty("user.home"),
+        directory = PlatformFile(System.getProperty("user.home")),
         onResult = { platformFile ->
             platformFile?.let {
                 val path = it.path ?: it.name
@@ -117,7 +117,7 @@ fun ProjectMenu(model: RotoscopeAppModel) {
             }
             
             DropdownMenuItem(onClick = {
-                ioScope.launch { saveProjectLauncher.launch() }
+                ioScope.launch { saveProjectLauncher.launch("test","json") }
                 showMenu = false
             }) {
                 Icon(

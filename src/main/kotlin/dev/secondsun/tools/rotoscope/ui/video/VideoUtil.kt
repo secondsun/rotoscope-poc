@@ -1,7 +1,8 @@
 package dev.secondsun.tools.rotoscope.ui.video
 
 import androidx.compose.runtime.mutableStateOf
-import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.bytedeco.javacpp.Loader
@@ -104,6 +105,6 @@ class VideoUtil(val path: String) {
 }
  object VideoUtilBuilder {
     fun open(file: PlatformFile): VideoUtil{
-        return VideoUtil(file.path!!)
+        return VideoUtil(file.path)
     }
 }

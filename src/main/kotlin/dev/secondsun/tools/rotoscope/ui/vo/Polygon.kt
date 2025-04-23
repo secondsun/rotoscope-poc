@@ -56,6 +56,10 @@ class Polygon(val color:Color = Color.Gray, val key: UUID = UUID.randomUUID()) {
 
     }
 
+    fun recalculateBounds() {
+        points.forEach {updateBounds(it)}
+    }
+
 
 }
 

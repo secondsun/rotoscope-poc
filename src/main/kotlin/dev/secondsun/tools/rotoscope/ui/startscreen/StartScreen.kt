@@ -17,10 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
-import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,10 +37,9 @@ fun StartScreen(
 ) {
     // File picker for video files
     val videoLauncher = rememberFilePickerLauncher(
-        type = PickerType.Video,
-        mode = PickerMode.Single,
+        type = FileKitType.Video,
         title = "Open Video File",
-        initialDirectory = System.getProperty("user.home"),
+        directory = PlatformFile(System.getProperty("user.home")),
         onResult = { platformFile ->
             onFilePicked(platformFile)
         }
@@ -48,10 +47,9 @@ fun StartScreen(
     
     // File picker for project files
     val projectLauncher = rememberFilePickerLauncher(
-        type = PickerType.File(listOf("json")),
-        mode = PickerMode.Single,
+        type = FileKitType.File(listOf("json")),
         title = "Open Project File",
-        initialDirectory = System.getProperty("user.home"),
+        directory = PlatformFile(System.getProperty("user.home")),
         onResult = { platformFile ->
             onFilePicked(platformFile)
         }

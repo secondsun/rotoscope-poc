@@ -1,6 +1,6 @@
 [versions]
 reorderable = "2.4.3"
-filekitCompose = "0.8.8"
+filekitCompose = "0.10.0-beta02"
 datastore = "1.1.1"
 opencv-jvm = "4.10.0-1.5.11"
 jetbrains-lifecycle = "2.8.2"
@@ -8,7 +8,8 @@ jetbrains-lifecycle = "2.8.2"
 
 [libraries]
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
-filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCompose" }
+filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekitCompose" }
+filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekitCompose" }
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 jetbrains-lifecycle = {module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrains-lifecycle"}
