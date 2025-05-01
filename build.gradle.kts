@@ -10,7 +10,7 @@ plugins {
 
 group = "dev.secondsun.tools"
 version = "1.0-SNAPSHOT"
-
+val osName = System.getProperty("os.name").lowercase()
 
 repositories {
     mavenCentral()
@@ -19,6 +19,7 @@ repositories {
     maven ( "https://jitpack.io" )
     //mavenLocal()
 }
+
 
 
 dependencies {
@@ -42,6 +43,12 @@ dependencies {
 
 
     implementation(libs.reorderable)
+    if (osName.contains("mac")) {
+        implementation(files("libs/opencv_java4120.jar"))
+
+    } else {
+        implementation(libs.jvm.opencv)
+    }
     implementation(libs.jvm.opencv)
     implementation(libs.filekit.dialogs)
     implementation(libs.filekit.dialogs.compose)
@@ -74,6 +81,8 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "MainKt"
+
+        jvmArgs += listOf("-Djava.library.path=${projectDir}/lib/")
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

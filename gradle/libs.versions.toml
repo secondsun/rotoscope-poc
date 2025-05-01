@@ -13,5 +13,5 @@ filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 jetbrains-lifecycle = {module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrains-lifecycle"}
-jvm-opencv ={ module = "org.bytedeco:opencv-platform", version.ref = "opencv-jvm"}
+jvm-opencv = { module = "org.bytedeco:opencv-platform", version.ref = "opencv-jvm"}
 

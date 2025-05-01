@@ -1,21 +1,16 @@
 package dev.secondsun.tools.rotoscope.ui.video
 
-import androidx.compose.runtime.mutableStateOf
+//import org.bytedeco.javacpp.Loader
+//import org.bytedeco.opencv.opencv_java
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import org.bytedeco.javacpp.Loader
-import org.bytedeco.opencv.opencv_java
 import org.opencv.core.Mat
 import org.opencv.videoio.VideoCapture
 import org.opencv.videoio.Videoio
-import java.awt.FlowLayout
-import java.awt.Graphics
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
-import javax.swing.JFrame
-import javax.swing.JPanel
 
 
 class VideoUtil(val path: String) {
@@ -35,7 +30,10 @@ class VideoUtil(val path: String) {
 
     init {
         // Load the OpenCV library
-        Loader.load(opencv_java::class.java)
+
+
+        System.loadLibrary("opencv_java4120")
+        //Loader.load(opencv_java::class.java)
 
         _status.value = Status.LOADING
         // Specify the path to your video file
