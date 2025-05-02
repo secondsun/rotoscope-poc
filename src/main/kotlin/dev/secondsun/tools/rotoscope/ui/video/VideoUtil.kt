@@ -4,8 +4,11 @@ package dev.secondsun.tools.rotoscope.ui.video
 //import org.bytedeco.opencv.opencv_java
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.path
+import jthemedetecor.util.OsInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.bytedeco.javacpp.Loader
+import org.bytedeco.opencv.opencv_java
 import org.opencv.core.Mat
 import org.opencv.videoio.VideoCapture
 import org.opencv.videoio.Videoio
@@ -31,9 +34,13 @@ class VideoUtil(val path: String) {
     init {
         // Load the OpenCV library
 
+         if (OsInfo.isMacOsMojaveOrLater) {
+            System.loadLibrary("opencv_java4120")
+        } else {
+             Loader.load(opencv_java::class.java)
+        }
 
-        System.loadLibrary("opencv_java4120")
-        //Loader.load(opencv_java::class.java)
+
 
         _status.value = Status.LOADING
         // Specify the path to your video file
