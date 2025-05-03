@@ -69,16 +69,28 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
                     key = poly.key,
                     modifier.padding(12.dp)
                             .border(width = 2.dp, color = MaterialTheme.colors.onSurface)
-                            .height(64.dp).width(100.dp)) { isDragging ->
+                            .height(64.dp).width(100.dp)
+                            // Add clickable modifier to set current polygon index
+                            .clickable { model.polyIndex(index) }
+                ) { isDragging ->
                     // Item content
                     val interactionSource = remember { MutableInteractionSource() }
                     Box(Modifier.fillMaxSize().draggableHandle(interactionSource = interactionSource)) {
-                        Canvas(Modifier.background(MaterialTheme.colors.surface).fillMaxSize()) {
+                        // Highlight the selected polygon
+                        val isSelected = model.polyIndex.value == index
+                        Canvas(
+                            Modifier
+                                .background(
+                                    if (isSelected) MaterialTheme.colors.primary.copy(alpha = 0.3f)
+                                    else MaterialTheme.colors.surface
+                                )
+                                .fillMaxSize()
+                        ) {
                             val canvasWidth = this.size.width
                             val canvasHeight = this.size.height
-
+                
                             //The big nasty thing scales the polygons so they draw inside of the canvas tile
-
+                
                             drawPoly(
                                 Polygon(poly.colorIndex, poly.key).apply { 
                                     points.addAll(poly.normalizePoints.map { PolyPoint(
@@ -90,7 +102,6 @@ fun PolyStackTool(modifier:Modifier = Modifier,  model: RotoscopeAppModel) {
                             )
                         }
                     }
-
                 }
             }
         }
