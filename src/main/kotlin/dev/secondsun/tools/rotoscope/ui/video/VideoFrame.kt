@@ -39,7 +39,7 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
     var highlightVertices by remember { mutableStateOf(false) }
     var hoveredVertex by remember { mutableStateOf<Pair<PolyPoint, Int>?>(null) }
-    
+    val videoFrame = remember { videoUtil.image.value.toComposeImageBitmap() }
     // Track the current vertex and polygon being dragged
     var draggedVertex by remember { mutableStateOf<Triple<PolyPoint, Int, Polygon>?>(null) }
     var isDragging by remember { mutableStateOf(false) }
@@ -66,13 +66,16 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                             }
                         }
                         .pointerInput(Unit) {
+                            val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
+                            val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
+
                             // Add points when clicking (if not in vertex editing mode)
                             detectTapGestures {
                                 if (!highlightVertices) {
                                     model.addPointToCurrentPoly(
                                         PolyPoint(
-                                            (it.x - offset.x).toInt(),
-                                            (it.y - offset.y).toInt()
+                                            (it.x / viewportScaleX - offset.x).toInt(),
+                                            (it.y / viewportScaleY - offset.y).toInt()
                                         )
                                     )
                                 }
@@ -87,7 +90,7 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                             while (true) {
                                                 val event = awaitPointerEvent()
                                                 val position = event.changes.first().position
-                                                
+
                                                 if (!isDragging) {
                                                     // Check if mouse is near any vertex of the current polygon
                                                     hoveredVertex = null
@@ -123,7 +126,8 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                                             (point.y + offset.y).toFloat()
                                                         )
                                                         if ((dragStartPosition - adjustedPoint).getDistance() < 10f) {
-                                                            draggedVertex = Triple(point, poly.points.indexOf(point), poly)
+                                                            draggedVertex =
+                                                                Triple(point, poly.points.indexOf(point), poly)
                                                             isDragging = true
                                                             break
                                                         }
@@ -137,7 +141,7 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                                         (point.x + dragAmount.x).toInt(),
                                                         (point.y + dragAmount.y).toInt()
                                                     )
-                                                    
+
                                                     // Update the polygon with the new point
                                                     val polyIndex = polygons.indexOf(poly)
                                                     if (polyIndex >= 0) {
@@ -167,44 +171,52 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                         )
                 ) {
                     // Draw video frame
+                    val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
+                    val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
+                    //Draw the video frame
                     drawImage(
                         image = videoUtil.image.value.toComposeImageBitmap(),
-                        srcOffset = IntOffset(-offset.x.toInt(), -offset.y.toInt())
+                        srcOffset = IntOffset(-offset.x.toInt(), -offset.y.toInt()),
+                        dstSize = IntSize((size.width * scale).toInt(), (size.height * scale).toInt()),
                     )
 
                     // Current selected polygon index
                     val currentPolyIndex = model.polyIndex.value
-                    
+
                     // Draw polygons
                     polygons.forEachIndexed { index, poly ->
                         // Draw the polygon
                         drawPoly(
                             poly = Polygon(poly.colorIndex, poly.key).apply {
                                 points.addAll(poly.points.map {
-                                    PolyPoint(it.x + offset.x.toInt(), it.y + offset.y.toInt())
+                                    PolyPoint(
+                                        ((it.x + offset.x) * viewportScaleX).toInt(),
+                                        ((it.y + offset.y) * viewportScaleY).toInt()
+                                    )
+
                                 })
                             },
                             palette = model.palette
                         )
-                    
+
                         // Draw vertex highlights only for the current polygon
                         if (highlightVertices && index == currentPolyIndex) {
                             for (point in poly.points) {
                                 val isHovered = hoveredVertex?.first == point
                                 val isDragged = draggedVertex?.first == point
-                                
+
                                 val highlightColor = when {
                                     isDragged -> Color.Red
                                     isHovered -> Color.Yellow
                                     else -> Color.White
                                 }
-                                
+
                                 val radius = when {
                                     isDragged -> 10f
                                     isHovered -> 8f
                                     else -> 6f
                                 }
-                                
+
                                 drawCircle(
                                     color = highlightColor,
                                     radius = radius,
@@ -214,7 +226,7 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                     ),
                                     style = Stroke(width = 2f)
                                 )
-                                
+
                                 // Fill the circle if it's hovered or dragged
                                 if (isHovered || isDragged) {
                                     drawCircle(
