@@ -85,6 +85,9 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                             if (highlightVertices) {
                                 Modifier
                                     .pointerInput(Unit) {
+                                        val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
+                                        val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
+
                                         // Track hover state for vertices
                                         awaitPointerEventScope {
                                             while (true) {
@@ -99,8 +102,8 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                                         val poly = polygons[currentPolyIndex]
                                                         for (point in poly.points) {
                                                             val adjustedPoint = Offset(
-                                                                (point.x + offset.x).toFloat(),
-                                                                (point.y + offset.y).toFloat()
+                                                                (point.x + offset.x) * viewportScaleX,
+                                                                (point.y + offset.y) * viewportScaleY
                                                             )
                                                             if ((position - adjustedPoint).getDistance() < 10f) {
                                                                 hoveredVertex = point to poly.colorIndex
@@ -113,6 +116,9 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                         }
                                     }
                                     .pointerInput(Unit) {
+                                        val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
+                                        val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
+
                                         // Handle dragging vertices
                                         detectDragGestures(
                                             onDragStart = { dragStartPosition ->
@@ -122,8 +128,8 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                                     val poly = polygons[currentPolyIndex]
                                                     for (point in poly.points) {
                                                         val adjustedPoint = Offset(
-                                                            (point.x + offset.x).toFloat(),
-                                                            (point.y + offset.y).toFloat()
+                                                            (point.x + offset.x) * viewportScaleX,
+                                                            (point.y + offset.y) * viewportScaleY
                                                         )
                                                         if ((dragStartPosition - adjustedPoint).getDistance() < 10f) {
                                                             draggedVertex =
@@ -138,8 +144,8 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                                 draggedVertex?.let { (point, index, poly) ->
                                                     // Create a new point at the updated position
                                                     val newPoint = PolyPoint(
-                                                        (point.x + dragAmount.x).toInt(),
-                                                        (point.y + dragAmount.y).toInt()
+                                                        ((point.x + dragAmount.x/viewportScaleX)).toInt(),
+                                                        ((point.y + dragAmount.y/viewportScaleY)).toInt()
                                                     )
 
                                                     // Update the polygon with the new point
@@ -221,8 +227,8 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                     color = highlightColor,
                                     radius = radius,
                                     center = Offset(
-                                        (point.x + offset.x).toFloat(),
-                                        (point.y + offset.y).toFloat()
+                                        (point.x + offset.x) * viewportScaleX,
+                                        (point.y + offset.y)* viewportScaleY
                                     ),
                                     style = Stroke(width = 2f)
                                 )
@@ -233,8 +239,8 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                         color = highlightColor.copy(alpha = 0.3f),
                                         radius = radius,
                                         center = Offset(
-                                            (point.x + offset.x).toFloat(),
-                                            (point.y + offset.y).toFloat()
+                                            (point.x + offset.x)* viewportScaleX,
+                                            (point.y + offset.y)* viewportScaleY
                                         )
                                     )
                                 }
