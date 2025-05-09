@@ -24,6 +24,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.toIntSize
 import dev.secondsun.tools.rotoscope.ui.drawing.RotoscopeAppModel
 import dev.secondsun.tools.rotoscope.ui.drawing.drawPoly
 import dev.secondsun.tools.rotoscope.ui.vo.PolyPoint
@@ -66,17 +67,16 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                             }
                         }
                         .pointerInput(Unit) {
-                            val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
-                            val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
 
                             // Add points when clicking (if not in vertex editing mode)
                             detectTapGestures {
+
+                                val polygonSpaceSize = videoUtil.image.value.let { IntSize(width = it.width, height = it.height) }
+                                val converter = CoordinateConverter(this.size,polygonSpaceSize , offset)
+
                                 if (!highlightVertices) {
                                     model.addPointToCurrentPoly(
-                                        PolyPoint(
-                                            (it.x / viewportScaleX - offset.x).toInt(),
-                                            (it.y / viewportScaleY - offset.y).toInt()
-                                        )
+                                        converter.screenToPolygon(it)
                                     )
                                 }
                             }
@@ -85,15 +85,15 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                             if (highlightVertices) {
                                 Modifier
                                     .pointerInput(Unit) {
-                                        val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
-                                        val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
+                                        val polygonSpaceSize = videoUtil.image.value.let { IntSize(width = it.width, height = it.height) }
+                                        val converter = CoordinateConverter(this.size,polygonSpaceSize , offset)
 
                                         // Track hover state for vertices
                                         awaitPointerEventScope {
                                             while (true) {
                                                 val event = awaitPointerEvent()
                                                 val position = event.changes.first().position
-
+                                    
                                                 if (!isDragging) {
                                                     // Check if mouse is near any vertex of the current polygon
                                                     hoveredVertex = null
@@ -101,10 +101,7 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                                     if (currentPolyIndex >= 0 && currentPolyIndex < polygons.size) {
                                                         val poly = polygons[currentPolyIndex]
                                                         for (point in poly.points) {
-                                                            val adjustedPoint = Offset(
-                                                                (point.x + offset.x) * viewportScaleX,
-                                                                (point.y + offset.y) * viewportScaleY
-                                                            )
+                                                            val adjustedPoint = converter.polygonToScreen(point)
                                                             if ((position - adjustedPoint).getDistance() < 10f) {
                                                                 hoveredVertex = point to poly.colorIndex
                                                                 break
@@ -116,8 +113,8 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                         }
                                     }
                                     .pointerInput(Unit) {
-                                        val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
-                                        val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
+                                        val polygonSpaceSize = videoUtil.image.value.let { IntSize(width = it.width, height = it.height) }
+                                        val converter = CoordinateConverter(this.size,polygonSpaceSize , offset)
 
                                         // Handle dragging vertices
                                         detectDragGestures(
@@ -127,10 +124,7 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                                 if (currentPolyIndex >= 0 && currentPolyIndex < polygons.size) {
                                                     val poly = polygons[currentPolyIndex]
                                                     for (point in poly.points) {
-                                                        val adjustedPoint = Offset(
-                                                            (point.x + offset.x) * viewportScaleX,
-                                                            (point.y + offset.y) * viewportScaleY
-                                                        )
+                                                        val adjustedPoint = converter.polygonToScreen(point)
                                                         if ((dragStartPosition - adjustedPoint).getDistance() < 10f) {
                                                             draggedVertex =
                                                                 Triple(point, poly.points.indexOf(point), poly)
@@ -142,10 +136,13 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                                             },
                                             onDrag = { change, dragAmount ->
                                                 draggedVertex?.let { (point, index, poly) ->
+                                                    // Convert drag amount to polygon space
+                                                    val polygonSpaceDrag = converter.screenDeltaToPolygon(dragAmount)
+                                                    
                                                     // Create a new point at the updated position
                                                     val newPoint = PolyPoint(
-                                                        ((point.x + dragAmount.x/viewportScaleX)).toInt(),
-                                                        ((point.y + dragAmount.y/viewportScaleY)).toInt()
+                                                        (point.x + polygonSpaceDrag.x).toInt(),
+                                                        (point.y + polygonSpaceDrag.y).toInt()
                                                     )
 
                                                     // Update the polygon with the new point
@@ -177,71 +174,68 @@ fun VideoFrame(modifier: Modifier = Modifier, videoUtil: VideoUtil, model: Rotos
                         )
                 ) {
                     // Draw video frame
-                    val viewportScaleX = this.size.width / videoUtil.image.value.width.toFloat()
-                    val viewportScaleY = this.size.height / videoUtil.image.value.height.toFloat()
+                    val polygonSpaceSize = videoUtil.image.value.let { IntSize(width = it.width, height = it.height) }
+                    val converter = CoordinateConverter(this.size.toIntSize(), polygonSpaceSize , offset)
+                    
                     //Draw the video frame
                     drawImage(
                         image = videoUtil.image.value.toComposeImageBitmap(),
                         srcOffset = IntOffset(-offset.x.toInt(), -offset.y.toInt()),
                         dstSize = IntSize((size.width * scale).toInt(), (size.height * scale).toInt()),
                     )
-
+                
                     // Current selected polygon index
                     val currentPolyIndex = model.polyIndex.value
-
+                
                     // Draw polygons
                     polygons.forEachIndexed { index, poly ->
                         // Draw the polygon
                         drawPoly(
                             poly = Polygon(poly.colorIndex, poly.key).apply {
-                                points.addAll(poly.points.map {
+                                points.addAll(poly.points.map { point ->
+                                    val screenPoint = converter.polygonToScreen(point)
                                     PolyPoint(
-                                        ((it.x + offset.x) * viewportScaleX).toInt(),
-                                        ((it.y + offset.y) * viewportScaleY).toInt()
+                                        screenPoint.x.toInt(),
+                                        screenPoint.y.toInt()
                                     )
-
                                 })
                             },
                             palette = model.palette
                         )
-
+                
                         // Draw vertex highlights only for the current polygon
                         if (highlightVertices && index == currentPolyIndex) {
                             for (point in poly.points) {
                                 val isHovered = hoveredVertex?.first == point
                                 val isDragged = draggedVertex?.first == point
-
+                
                                 val highlightColor = when {
                                     isDragged -> Color.Red
                                     isHovered -> Color.Yellow
                                     else -> Color.White
                                 }
-
+                
                                 val radius = when {
                                     isDragged -> 10f
                                     isHovered -> 8f
                                     else -> 6f
                                 }
-
+                
+                                val screenPoint = converter.polygonToScreen(point)
+                                
                                 drawCircle(
                                     color = highlightColor,
                                     radius = radius,
-                                    center = Offset(
-                                        (point.x + offset.x) * viewportScaleX,
-                                        (point.y + offset.y)* viewportScaleY
-                                    ),
+                                    center = screenPoint,
                                     style = Stroke(width = 2f)
                                 )
-
+                
                                 // Fill the circle if it's hovered or dragged
                                 if (isHovered || isDragged) {
                                     drawCircle(
                                         color = highlightColor.copy(alpha = 0.3f),
                                         radius = radius,
-                                        center = Offset(
-                                            (point.x + offset.x)* viewportScaleX,
-                                            (point.y + offset.y)* viewportScaleY
-                                        )
+                                        center = screenPoint
                                     )
                                 }
                             }
